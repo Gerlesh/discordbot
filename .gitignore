@@ -1,0 +1,5 @@
+/data/
+/cogs/__pycache__/
+/cogs/sample.txt
+/env/
+/.idea/
