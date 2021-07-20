@@ -1,2 +1,5 @@
 discord~=1.7.3
 aiosqlite~=0.17.0
+EbookLib~=0.17.1
+beautifulsoup4~=4.9.3
+capybre~=0.0.6
