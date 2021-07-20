@@ -1,5 +1,5 @@
 /data/
 /cogs/__pycache__/
-/cogs/sample.txt
+/cogs/*.txt
 /env/
 /.idea/
