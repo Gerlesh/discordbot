@@ -1,0 +1,19 @@
+version: '3.9'
+
+services:
+  discord-bot:
+    container_name: gerlesh/discord-bot
+    build: .
+    image: gerlesh/discord-bot:latest
+    command: python3 -u bot.py
+    environment:
+      - DISCORD_BOT_TOKEN=/var/run/secrets/discord_bot_token
+    ports:
+      - 8082:8080
+    secrets:
+      - discord_bot_token
+    restart: unless-stopped
+
+secrets:
+  discord_bot_token:
+    file: ./secrets/discord_bot_token
