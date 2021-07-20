@@ -2,10 +2,10 @@ version: '3.9'
 
 services:
   discord-bot:
-    container_name: gerlesh/discord-bot
+    container_name: discord-bot
     build: .
     image: gerlesh/discord-bot:latest
-    command: python3 -u bot.py
+    command: python3 -u main.py
     environment:
       - DISCORD_BOT_TOKEN=/var/run/secrets/discord_bot_token
     ports:

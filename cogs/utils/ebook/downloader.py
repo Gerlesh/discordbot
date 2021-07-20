@@ -1,3 +1,5 @@
+import importlib
+
 import cloudscraper
 from bs4 import BeautifulSoup
 from ebooklib import epub
@@ -24,7 +26,7 @@ def get_fic(url):
 
     for domain in URL_MAP:
         if url.startswith(domain):
-            module = __import__(URL_MAP[domain]).main(scraper)
+            module = importlib.import_module('cogs.utils.ebook.'+URL_MAP[domain]).main(scraper)
             site = domain
 
     if module is None:
@@ -79,7 +81,7 @@ def get_fic(url):
         # Get chapter data
 
         c = chapter_links.pop(0)
-        print("Retrieving " + c)
+        # print("Retrieving " + c)
         r = scraper.get(module.url_transform(c), headers=HEADERS)
         s = BeautifulSoup(r.text, "html.parser")
         ################################################################################################################
@@ -98,7 +100,7 @@ def get_fic(url):
 
         content = "<h1><a href='" + c + "'>" + chapter_title + "</a></h1>" + module.get_chapter_content(book, c, s)
 
-        print(chapter_title)
+        # print(chapter_title)
 
         ################################################################################################################
         # Add chapter to ebook

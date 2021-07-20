@@ -7,7 +7,7 @@ import discord
 from discord.ext import commands
 from ebooklib import epub
 
-import utils.ebook as downloader
+from .utils.ebook import downloader
 
 
 class Ebook(commands.Cog):
@@ -39,10 +39,10 @@ class Ebook(commands.Cog):
                                                                                        as_ext='epub'))
 
             await ctx.message.reply(file=discord.File(out, 'fic.epub'))
-            print("Sent!")
+            # print("Sent!")
 
             os.remove('book.epub')
-            os.remove('fixed.epub')
+            os.remove(out)
         else:
             await ctx.message.reply("Something went wrong. Make sure that your link points to the table of contents for"
                                     " wattpad, or the first chapter for ffn or ao3")

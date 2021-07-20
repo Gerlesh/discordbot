@@ -108,7 +108,7 @@ class Bot(commands.Bot):
         """
 
         async with sql.connect(self.config["database"]) as db:
-            async with db.execute('SELECT prefix FROM prefixes WHERE server=?', (msg.guild.id,)) as cur:
+            async with db.execute('SELECT prefix FROM prefixes WHERE server_id=?', (msg.guild.id,)) as cur:
                 prefix = await cur.fetchone()
 
         return prefix if prefix is not None else '-'
