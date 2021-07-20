@@ -67,9 +67,8 @@ async def run():
     bot = Bot(config=config, description=config['description'] if 'description' in config else None)
 
     async with sql.connect(config['database']) as db:
-        await db.execute('CREATE TABLE IF NOT EXISTS "reminders" ("time" INTEGER NOT NULL, "message" TEXT)')
         await db.execute(
-            'CREATE TABLE IF NOT EXISTS "prefixes" ("server_id" INTEGER PRIMARY KEY, "prefix" TEXT DEFAULT ?)', ('-',)
+            'CREATE TABLE IF NOT EXISTS "prefixes" ("server_id" INTEGER PRIMARY KEY, "prefix" TEXT)'
         )
 
     try:
@@ -107,11 +106,11 @@ class Bot(commands.Bot):
         Returns the prefix to be used with the message (i.e. guild prefix)
         """
 
-        async with sql.connect(bot.config["database"]) as db:
-            async with db.execute('SELECT prefix FROM prefixes WHERE server=?', (msg.guild,)) as cur:
+        async with sql.connect(self.config["database"]) as db:
+            async with db.execute('SELECT prefix FROM prefixes WHERE server=?', (msg.guild.id,)) as cur:
                 prefix = await cur.fetchone()
 
-        return prefix
+        return prefix if prefix is not None else '-'
 
     async def load_all_extensions(self):
         """
@@ -250,7 +249,7 @@ class Bot(commands.Bot):
             return
 
         # ignore all other exception types, but print them to stderr
-        print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
+        print('\n\nIgnoring exception in command {}:'.format(ctx.command), file=sys.stderr)
 
         traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
