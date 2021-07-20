@@ -7,10 +7,13 @@ import discord
 from discord.ext import commands
 from ebooklib import epub
 
-from .utils.ebook import downloader
+from cogs.utils.ebook import downloader
 
 
 class Ebook(commands.Cog):
+    """
+    Commands to download and work with ebooks.
+    """
     def __init__(self, bot):
         self.bot = bot
         self.sites = {"https://archiveofourown.org/works/",

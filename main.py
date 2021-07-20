@@ -40,7 +40,7 @@ class HelpCommand(commands.HelpCommand):
         embed = discord.Embed(title="Commands")
         for cog in mapping.keys():
             embed.add_field(name="**__" + (cog.qualified_name if hasattr(cog, "qualified_name") else cog) + "__**",
-                            value=cog.description if hasattr(cog, "description") else "No Description", inline=False)
+                            value=cog.description if (hasattr(cog, 'description') and cog.description) else "No Description", inline=False)
 
             for command in mapping[cog]:
                 embed.add_field(name=command.name, value=command.help.split("\n")[0])
