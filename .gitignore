@@ -1,5 +1,6 @@
-data/
+data/db.db
 cogs/__pycache__/
 cogs/*.txt
 env/
 .idea/
+secrets/

@@ -72,7 +72,8 @@ async def run():
         )
 
     try:
-        await bot.start(config['token'])
+        with open(os.getenv('DISCORD_BOT_TOKEN'), 'r') as f:
+            await bot.start(f.read())
     except KeyboardInterrupt:
         await bot.logout()
 
