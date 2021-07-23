@@ -65,8 +65,12 @@ async def run():
     """
 
     config = config_load()
+    db = await sql.connect(config["database"])
+    await db.execute(
+        'CREATE TABLE IF NOT EXISTS "prefixes" ("server_id" INTEGER PRIMARY KEY, "prefix" TEXT)'
+    )
 
-    bot = Bot(config=config, description=config['description'] if 'description' in config else None)
+    bot = Bot(config=config, description=config['description'] if 'description' in config else None, db=db)
 
     bot.get_misc_commands()
 
@@ -87,10 +91,7 @@ class Bot(commands.Bot):
 
         self.config = kwargs.pop('config')
 
-        self.db = await sql.connect(self.config["database"])
-        await self.db.execute(
-            'CREATE TABLE IF NOT EXISTS "prefixes" ("server_id" INTEGER PRIMARY KEY, "prefix" TEXT)'
-        )
+        self.db = kwargs.pop('db')
 
         self.start_time = None
         self.app_info = None
