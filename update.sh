@@ -1,2 +1,4 @@
 git pull origin master
-exec python3 -u main.py
+chmod +x update.sh
+pip3 install -r requirements
+python3 -u main.py
