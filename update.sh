@@ -1,2 +1,2 @@
 git pull origin master
-python3 -u main.py
+exec python3 -u main.py
