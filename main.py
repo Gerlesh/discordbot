@@ -40,7 +40,9 @@ class HelpCommand(commands.HelpCommand):
         embed = discord.Embed(title="Commands")
         for cog in mapping.keys():
             embed.add_field(name="**__" + (cog.qualified_name if hasattr(cog, "qualified_name") else cog) + "__**",
-                            value=cog.description if (hasattr(cog, 'description') and cog.description) else "No Description", inline=False)
+                            value=cog.description if (
+                                    hasattr(cog, 'description') and cog.description) else "Miscellaneous commands",
+                            inline=False)
 
             for command in mapping[cog]:
                 embed.add_field(name=command.name, value=command.help.split("\n")[0])
@@ -66,10 +68,7 @@ async def run():
 
     bot = Bot(config=config, description=config['description'] if 'description' in config else None)
 
-    async with sql.connect(config['database']) as db:
-        await db.execute(
-            'CREATE TABLE IF NOT EXISTS "prefixes" ("server_id" INTEGER PRIMARY KEY, "prefix" TEXT)'
-        )
+    bot.get_misc_commands()
 
     try:
         with open(os.getenv('DISCORD_BOT_TOKEN'), 'r') as f:
@@ -87,6 +86,11 @@ class Bot(commands.Bot):
         )
 
         self.config = kwargs.pop('config')
+
+        self.db = await sql.connect(self.config["database"])
+        await self.db.execute(
+            'CREATE TABLE IF NOT EXISTS "prefixes" ("server_id" INTEGER PRIMARY KEY, "prefix" TEXT)'
+        )
 
         self.start_time = None
         self.app_info = None
@@ -107,9 +111,8 @@ class Bot(commands.Bot):
         Returns the prefix to be used with the message (i.e. guild prefix)
         """
 
-        async with sql.connect(self.config["database"]) as db:
-            async with db.execute('SELECT prefix FROM prefixes WHERE server_id=?', (msg.guild.id,)) as cur:
-                prefix = await cur.fetchone()
+        async with self.db.execute('SELECT prefix FROM prefixes WHERE server_id=?', (msg.guild.id,)) as cur:
+            prefix = await cur.fetchone()
 
         return prefix if prefix is not None else '-'
 
@@ -162,6 +165,8 @@ class Bot(commands.Bot):
 
         await self.http.close()
         self._closed = True
+
+        await self.db.close()
 
         for voice in self.voice_clients:
             try:
@@ -254,9 +259,17 @@ class Bot(commands.Bot):
 
         traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
+    def get_misc_commands(self):
+        @self.command(usage='')
+        @commands.is_owner()
+        async def update(ctx):
+            await ctx.send("Restarting...")
+            await ctx.bot.logout()
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run())
+    os.execvp("./update.sh")
