@@ -33,6 +33,7 @@ class Ebook(commands.Cog):
         async with ctx.typing():
             fic = await asyncio.get_event_loop().run_in_executor(None, downloader.get_fic, url)
         if fic:
+            await ctx.send("Getting fic...")
             async with ctx.typing():
                 epub.write_epub('book.epub', fic, {})
 
