@@ -265,7 +265,7 @@ class Bot(commands.Bot):
         @commands.is_owner()
         async def update(ctx):
             await ctx.send("Restarting...")
-            await ctx.bot.logout()
+            await ctx.bot.close()
 
 
 if __name__ == '__main__':
