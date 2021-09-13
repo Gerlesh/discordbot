@@ -13,7 +13,8 @@ HEADERS = {
 URL_MAP = {
     "https://archiveofourown.org/": 'ao3',
     "https://www.fanfiction.net/": 'ffn',
-    "https://www.wattpad.com/": 'wp'
+    "https://www.wattpad.com/": 'wp',
+    "https://toonily.net/": 'toon'
 }
 
 
@@ -51,7 +52,7 @@ class wp:
         return soup.find('h1', {'class': 'h2'}).string.strip()
 
     def last_chapter(self, url, soup):
-        return not bool(self.chapters)
+        return not self.chapters
 
     def next_chapter(self, url, soup):
         return self.chapters.pop(0)
@@ -149,7 +150,7 @@ class ffn:
             return soup.find('div', {'id': "profile_top"}).find('b', {'class': "xcontrast_txt"}).string
 
     def last_chapter(self, url, soup):
-        return not bool(self.chapters)
+        return not self.chapters
 
     def next_chapter(self, url, soup):
         return self.chapters.pop(0)
@@ -191,7 +192,7 @@ class ao3:
                                                                                                              '').strip()
 
     def last_chapter(self, url, soup):
-        return not bool(soup.find('li', {'class': 'chapter next'}))
+        return not soup.find('li', {'class': 'chapter next'})
 
     def next_chapter(self, url, soup):
         return 'https://archiveofourown.org' + soup.find('li', {'class': 'chapter next'}).a['href']
@@ -226,6 +227,66 @@ class ao3:
 
         content += ''.join(paragraphs).replace('href="/', 'href="https://www.archiveofourown.org/') \
             .replace("href='/", "href='https://www.archiveofourown.org/")
+        return content
+
+
+class toon:
+    def __init__(self, scraper):
+        self.image_count = 0
+        self.chapters = []
+        self.scraper = scraper
+
+    def url_transform(self, url):
+        return url
+
+    def get_id(self, url, soup):
+        return re.search(r'/manga/(.*?)/$', url).group(1)
+
+    def get_title(self, url, soup):
+        return soup.find('div', {'class': 'post-title'}).h1.string
+
+    def get_author(self, url, soup):
+        return soup.find('div', {'class': 'author-content'}).string
+
+    def get_cover(self, url, soup):
+        return self.scraper.get(soup.find('div', {'class': 'summary_image'}).a.img['src']).content
+
+    def get_summary(self, soup):
+        return ''.join(soup.find('div', {'class': 'summary__content show-more'}).contents)
+
+    def first_chapter_url(self, url, soup):
+        self.chapters = [link['href'] for link in soup.find('ul', {'class': 'main version-chap'}).find_all('a')][::-1]
+        return self.chapters.pop(0)
+
+    def get_chapter_title(self, url, soup):
+        return soup.find('h1', {'id': 'chapter-heading'}).string
+
+    def last_chapter(self, url, soup):
+        return not self.chapters
+
+    def next_chapter(self, url, soup):
+        return self.chapters.pop(0)
+
+    def get_chapter_content(self, book, url, soup):
+        content = '<div style="width:99%;text-align:center;display:block;font-size:0;line-height:0;">'
+        images = [im['src'] for im in soup.find('div', {'class': 'reading-content'}).find_all('img')]
+
+        for i, im in enumerate(images):
+            pic = epub.EpubImage()
+            pic.file_name = 'images\\' + str(self.image_count) + '.jpg'
+            pic.media_type = 'image.jpeg'
+
+            while pic.content == b'':
+                try:
+                    pic.content = self.scraper.get(im).content
+                except self.scraper.ConnectionError:
+                    pass
+
+            content += '<img style="display:block;width:99%;max-width:770px;height:auto;margin:0 auto;" src="' + pic.file_name + '"/>'
+            book.add_item(pic)
+            self.image_count += 1
+
+        content += '</div>'
         return content
 
 
