@@ -23,7 +23,7 @@ class Ebook(commands.Cog):
     @commands.command(usage="<url>")
     async def download(self, ctx, url):
         """
-        Download a fanfiction from wattpad.com, fanfiction.net, or archiveofourown.org.
+        Download a fanfiction from wattpad.com, fanfiction.net, archiveofourown.org, or toonily.net.
 
         Make sure your link points to the table of contents for wattpad, or the first chapter for ffn or ao3.
         """
