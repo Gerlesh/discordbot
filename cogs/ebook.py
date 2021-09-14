@@ -18,14 +18,15 @@ class Ebook(commands.Cog):
         self.bot = bot
         self.sites = {"https://archiveofourown.org/works/",
                       "https://www.wattpad.com/story/",
-                      "https://www.fanfiction.net/s/"}
+                      "https://www.fanfiction.net/s/",
+                      "https://www.toonily.net/"}
 
     @commands.command(usage="<url>")
     async def download(self, ctx, url):
         """
         Download a fanfiction from wattpad.com, fanfiction.net, archiveofourown.org, or toonily.net.
 
-        Make sure your link points to the table of contents for wattpad, or the first chapter for ffn or ao3.
+        Make sure your link points to the table of contents for wattpad or toonily, or the first chapter for ffn or ao3.
         """
         if not any([url.startswith(s) for s in self.sites]):
             await ctx.message.reply("Make sure your link points to the table of contents for wattpad, or the first "
@@ -48,7 +49,7 @@ class Ebook(commands.Cog):
             os.remove(out)
         else:
             await ctx.message.reply("Something went wrong. Make sure that your link points to the table of contents for"
-                                    " wattpad, or the first chapter for ffn or ao3")
+                                    " wattpad or toonily, or the first chapter for ffn or ao3")
 
     @commands.command(usage="<desired format> (attachment: ebook to convert)")
     async def convert(self, ctx, ext):
