@@ -19,7 +19,7 @@ class Ebook(commands.Cog):
         self.sites = {"https://archiveofourown.org/works/",
                       "https://www.wattpad.com/story/",
                       "https://www.fanfiction.net/s/",
-                      "https://www.toonily.net/"}
+                      "https://toonily.net/"}
 
     @commands.command(usage="<url>")
     async def download(self, ctx, url):
@@ -29,7 +29,7 @@ class Ebook(commands.Cog):
         Make sure your link points to the table of contents for wattpad or toonily, or the first chapter for ffn or ao3.
         """
         if not any([url.startswith(s) for s in self.sites]):
-            await ctx.message.reply("Make sure your link points to the table of contents for wattpad, or the first "
+            await ctx.message.reply("Make sure your link points to the table of contents for wattpad or toonily, or the first "
                                     "chapter for ffn or ao3")
         async with ctx.typing():
             fic = await asyncio.get_event_loop().run_in_executor(None, downloader.get_fic, url)
