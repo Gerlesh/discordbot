@@ -247,7 +247,7 @@ class toon:
         return soup.find('div', {'class': 'post-title'}).h1.string
 
     def get_author(self, url, soup):
-        return soup.find('div', {'class': 'author-content'}).string
+        return soup.find('div', {'class': 'author-content'}).a.string
 
     def get_cover(self, url, soup):
         return self.scraper.get(soup.find('div', {'class': 'summary_image'}).a.img['src']).content
