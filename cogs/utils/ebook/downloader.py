@@ -253,7 +253,7 @@ class toon:
         return self.scraper.get(soup.find('div', {'class': 'summary_image'}).a.img['src']).content
 
     def get_summary(self, soup):
-        return ''.join(soup.find('div', {'class': 'summary__content show-more'}).contents)
+        return ''.join([str(p) for p in soup.find('div', {'class': 'summary__content show-more'}).contents])
 
     def first_chapter_url(self, url, soup):
         self.chapters = [link['href'] for link in soup.find('ul', {'class': 'main version-chap'}).find_all('a')][::-1]
@@ -280,7 +280,7 @@ class toon:
             while pic.content == b'':
                 try:
                     pic.content = self.scraper.get(im).content
-                except self.scraper.ConnectionError:
+                except ConnectionAbortedError:
                     pass
 
             content += '<img style="display:block;margin:0 auto;" src="' + pic.file_name + '"/>'

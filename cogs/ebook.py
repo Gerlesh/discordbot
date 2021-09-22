@@ -31,6 +31,11 @@ class Ebook(commands.Cog):
         if not any([url.startswith(s) for s in self.sites]):
             await ctx.message.reply("Make sure your link points to the table of contents for wattpad or toonily, or the first "
                                     "chapter for ffn or ao3")
+
+        if url.startswith("https://toonily.net/"):
+            await ctx.message.reply("Toonily stories take a while to download because of the large number of images. "
+                                    "Please be patient, you will be pinged when the story is ready. The bot will be "
+                                    "typing until the story is finished or until something goes wrong.")
         async with ctx.typing():
             fic = await asyncio.get_event_loop().run_in_executor(None, downloader.get_fic, url)
         if fic:
