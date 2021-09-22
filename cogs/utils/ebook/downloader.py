@@ -1,3 +1,4 @@
+import os
 import re
 import sys
 
@@ -90,8 +91,8 @@ class wp:
                 image = self.scraper.get(p.img['src'])
 
                 im = epub.EpubImage()
-                im.file_name = "images/" + str(self.image_count) + '.' + \
-                               image.headers['content-type'].split('/')[1]
+                im.file_name = os.path.join("images" + str(self.image_count) + '.' + image.headers['content-type']
+                                                                                          .split('/')[1])
                 im.media_type = image.headers['content-type']
                 im.content = image.content
                 book.add_item(im)
@@ -213,8 +214,8 @@ class ao3:
                     image = self.scraper.get(image['src'])
 
                     im = epub.EpubImage()
-                    im.file_name = "images/" + str(self.image_count) + '.' + \
-                                   image.headers['content-type'].split('/')[1]
+                    im.file_name = os.path.join("images", str(self.image_count) + '.' + image.headers['content-type']
+                                                                                             .split('/')[1])
                     im.media_type = image.headers['content-type']
                     im.content = image.content
                     book.add_item(im)
@@ -268,13 +269,13 @@ class toon:
         return self.chapters.pop(0)
 
     def get_chapter_content(self, book, url, soup):
-        content = '<div style="width:99%;text-align:center;display:block;font-size:0;line-height:0;">'
+        content = '<div style="text-align:center;font-size:0;line-height:0;">'
         images = [im['src'] for im in soup.find('div', {'class': 'reading-content'}).find_all('img')]
 
         for i, im in enumerate(images):
             pic = epub.EpubImage()
-            pic.file_name = 'images\\' + str(self.image_count) + '.jpg'
-            pic.media_type = 'image.jpeg'
+            pic.file_name = os.path.join('images', str(self.image_count) + '.jpg')
+            pic.media_type = 'image/jpeg'
 
             while pic.content == b'':
                 try:
@@ -282,7 +283,7 @@ class toon:
                 except self.scraper.ConnectionError:
                     pass
 
-            content += '<img style="display:block;width:99%;max-width:770px;height:auto;margin:0 auto;" src="' + pic.file_name + '"/>'
+            content += '<img style="display:block;margin:0 auto;" src="' + pic.file_name + '"/>'
             book.add_item(pic)
             self.image_count += 1
 
