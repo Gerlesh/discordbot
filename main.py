@@ -36,9 +36,17 @@ class HelpCommand(commands.HelpCommand):
             for cog in bot.cogs.values()
         }
         mapping["General"] = list(dict.fromkeys([c for c in bot.all_commands.values() if c.cog is None]))
+
         return mapping
 
     async def send_bot_help(self, mapping:dict):
+        for cog, commands in mapping.items():
+            for c in commands:
+                if not await c.can_run(self.context):
+                    mapping[cog].remove(c)
+            if not mapping[cog]:
+                mapping.pop(cog)
+
         embed = nextcord.Embed(title="Commands")
         cog = [cog for cog in mapping.keys() if isinstance(cog, str)][0]
         embed.add_field(name="**__" + (cog.qualified_name if hasattr(cog, "qualified_name") else cog) + "__**",
@@ -57,6 +65,10 @@ class HelpCommand(commands.HelpCommand):
         await self.context.send(embed=embed, view=view)
 
     async def send_command_help(self, command:commands.Command):
+        if not await command.can_run(self.context):
+            await self.send_bot_help(self.get_bot_mapping())
+            return
+
         bot = self.context.bot
         embed = nextcord.Embed(title=command.name + " info",
                               description=command.help)
@@ -72,6 +84,10 @@ class HelpCommand(commands.HelpCommand):
         await self.context.send(embed=embed)
 
     async def send_group_help(self, group:commands.Group):
+        if not await group.can_run(self.context):
+            await self.send_bot_help(self.get_bot_mapping())
+            return
+
         bot = self.context.bot
         embed = nextcord.Embed(title=group.name + " info",
                               description=group.help)
