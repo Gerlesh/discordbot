@@ -40,7 +40,8 @@ class HelpCommand(commands.HelpCommand):
         return mapping
 
     async def send_bot_help(self, mapping:dict):
-        for cog, commands in mapping.items():
+        copy = mapping.copy()
+        for cog, commands in copy.items():
             for c in commands:
                 if not await c.can_run(self.context):
                     mapping[cog].remove(c)
