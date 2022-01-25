@@ -3,3 +3,4 @@ cogs/__pycache__/
 cogs/*.txt
 .venv/
 secrets/
+!cogs/sample.txt
