@@ -1,5 +1,6 @@
 data/db.db
 cogs/__pycache__/
+cogs/utils/__pycache__/
 cogs/*.txt
 .venv/
 secrets/

@@ -12,10 +12,12 @@ from pathlib import Path
 
 import aiosqlite as sql
 import nextcord
-from nextcord.ext import commands
+from nextcord.ext import commands, menus
+
+from cogs.utils import menus
 
 
-def config_load():
+def config_load() -> dict:
     with open(os.path.join("data", "config.json"), 'r', encoding='utf-8-sig') as f:
         return json.load(f)
 
@@ -26,39 +28,60 @@ class HelpCommand(commands.HelpCommand):
         self.command_attrs = {'name': "help", 'usage': "<optional command>", 'aliases': ["commands", "q"],
                               'help': "Shows this help message.\nAdd a command to get information about it."}
 
-    def get_bot_mapping(self):
+    def get_bot_mapping(self) -> dict:
         """Retrieves the bot mapping passed to :meth:`send_bot_help`."""
         bot = self.context.bot
         mapping = {
             cog: list(dict.fromkeys(cog.get_commands()))
             for cog in bot.cogs.values()
         }
-        mapping["Other"] = list(dict.fromkeys([c for c in bot.all_commands.values() if c.cog is None]))
+        mapping["General"] = list(dict.fromkeys([c for c in bot.all_commands.values() if c.cog is None]))
         return mapping
 
-    async def send_bot_help(self, mapping):
+    async def send_bot_help(self, mapping:dict):
         embed = nextcord.Embed(title="Commands")
-        for cog in mapping.keys():
-            embed.add_field(name="**__" + (cog.qualified_name if hasattr(cog, "qualified_name") else cog) + "__**",
-                            value=cog.description if (
-                                    hasattr(cog, 'description') and cog.description) else "Miscellaneous commands",
-                            inline=False)
+        cog = [cog for cog in mapping.keys() if isinstance(cog, str)][0]
+        embed.add_field(name="**__" + (cog.qualified_name if hasattr(cog, "qualified_name") else cog) + "__**",
+                        value=cog.description if (
+                                hasattr(cog, 'description') and cog.description) else "Miscellaneous commands",
+                        inline=False)
 
-            for command in mapping[cog]:
-                embed.add_field(name=command.name, value=command.help.split("\n")[0])
+        for command in mapping[cog]:
+            embed.add_field(name=command.name, value=command.help.split("\n")[0])
 
-        await self.context.send(embed=embed)
+        view = None
+        if len(mapping.keys()) > 1:
+            view = nextcord.ui.View()
+            view.add_item(menus.HelpMenu(mapping))
 
-    async def send_command_help(self, command):
+        await self.context.send(embed=embed, view=view)
+
+    async def send_command_help(self, command:commands.Command):
         bot = self.context.bot
         embed = nextcord.Embed(title=command.name + " info",
                               description=command.help)
 
         embed.add_field(name="Aliases",
-                        value=', '.join([await bot.get_prefix_(bot, self.context.message) + alias for alias in [command.name] + command.aliases]))
-        embed.add_field(name="Usage", value=await self.context.bot.get_prefix_(bot, self.context.message) + command.name + " " + command.usage)
+                        value=', '.join([await bot.get_prefix_(bot, self.context.message)
+                                        + (command.parent.name + " " if command.parent else '')
+                                        + alias for alias in [command.name] + command.aliases]))
+        embed.add_field(name="Usage", value=await self.context.bot.get_prefix_(bot, self.context.message)
+                                        + (command.parent.name + " " if command.parent else '')
+                                        + command.name + (" " + command.usage if command.usage else ""))
+
         await self.context.send(embed=embed)
 
+    async def send_group_help(self, group:commands.Group):
+        bot = self.context.bot
+        embed = nextcord.Embed(title=group.name + " info",
+                              description=group.help)
+
+        embed.add_field(name="Aliases",
+                        value=', '.join([await bot.get_prefix_(bot, self.context.message) + alias for alias in [group.name] + group.aliases]))
+        embed.add_field(name="Usage", value=await self.context.bot.get_prefix_(bot, self.context.message) + group.name + " " + group.usage)
+        embed.add_field(name="Subcommands", value=', '.join([command.name for command in group.commands]))
+
+        await self.context.send(embed=embed)
 
 async def run():
     """
@@ -109,7 +132,7 @@ class Bot(commands.Bot):
         await self.wait_until_ready()
         self.start_time = datetime.datetime.utcnow()
 
-    async def get_prefix_(self, bot, msg):
+    async def get_prefix_(self, bot:commands.Bot, msg:nextcord.Message):
         """
         Returns the prefix to be used with the message (i.e. guild prefix)
         """
@@ -135,6 +158,8 @@ class Bot(commands.Bot):
                 error = f'{extension}\n {type(e).__name__} : {e}'
                 print(f'failed to load extension {error}')
             print('-' * 10)
+        if any([len(i.get_commands())>24 for i in self.cogs.values()]):
+            raise OverflowError("Too many commands in cog (help command would not work).")
 
     async def on_ready(self):
         """
@@ -149,7 +174,7 @@ class Bot(commands.Bot):
               f'Time: {self.start_time}')
         print('-' * 10)
 
-    async def on_message(self, message):
+    async def on_message(self, message:nextcord.Message):
         """
         This event triggers on every message received by the bot to process commands.
         """
@@ -183,7 +208,7 @@ class Bot(commands.Bot):
 
         self._ready.clear()
 
-    async def on_command_error(self, ctx, error):
+    async def on_command_error(self, ctx:commands.Context, error:Exception):
         """
         Handles all errors in commands.
         """
@@ -265,7 +290,7 @@ class Bot(commands.Bot):
     def get_misc_commands(self):
         @self.command(usage='')
         @commands.is_owner()
-        async def update(ctx):
+        async def update(ctx:commands.Context):
             """
             Update the bot from the github page. Only usable by the owner of the bot.
             """
