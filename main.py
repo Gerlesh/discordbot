@@ -12,7 +12,7 @@ from pathlib import Path
 
 import aiosqlite as sql
 import nextcord
-from nextcord.ext import commands, menus
+from nextcord.ext import commands
 
 from cogs.utils import menus
 
