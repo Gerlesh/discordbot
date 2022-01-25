@@ -1,4 +1,4 @@
-#!./env/Scripts/python.exe
+#!.venv/bin/python3.9
 
 import asyncio
 import datetime
@@ -11,8 +11,8 @@ import traceback
 from pathlib import Path
 
 import aiosqlite as sql
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 
 
 def config_load():
@@ -37,7 +37,7 @@ class HelpCommand(commands.HelpCommand):
         return mapping
 
     async def send_bot_help(self, mapping):
-        embed = discord.Embed(title="Commands")
+        embed = nextcord.Embed(title="Commands")
         for cog in mapping.keys():
             embed.add_field(name="**__" + (cog.qualified_name if hasattr(cog, "qualified_name") else cog) + "__**",
                             value=cog.description if (
@@ -50,12 +50,13 @@ class HelpCommand(commands.HelpCommand):
         await self.context.send(embed=embed)
 
     async def send_command_help(self, command):
-        embed = discord.Embed(title=command.name + " info",
+        bot = self.context.bot
+        embed = nextcord.Embed(title=command.name + " info",
                               description=command.help)
 
         embed.add_field(name="Aliases",
-                        value=', '.join([self.clean_prefix + alias for alias in [command.name] + command.aliases]))
-        embed.add_field(name="Usage", value=self.clean_prefix + command.name + " " + command.usage)
+                        value=', '.join([await bot.get_prefix_(bot, self.context.message) + alias for alias in [command.name] + command.aliases]))
+        embed.add_field(name="Usage", value=await self.context.bot.get_prefix_(bot, self.context.message) + command.name + " " + command.usage)
         await self.context.send(embed=embed)
 
 
@@ -86,7 +87,8 @@ class Bot(commands.Bot):
         super().__init__(
             command_prefix=self.get_prefix_,
             description=kwargs.pop('description'),
-            help_command=HelpCommand()
+            help_command=HelpCommand(),
+            intents=nextcord.Intents.default()
         )
 
         self.config = kwargs.pop('config')
@@ -142,7 +144,7 @@ class Bot(commands.Bot):
         print('-' * 10)
         self.app_info = await self.application_info()
         print(f'Logged in as: {self.user.name}\n'
-              f'Using discord.py version: {discord.__version__}\n'
+              f'Using nextcord version: {nextcord.__version__}\n'
               f'Owner: {self.app_info.owner}\n'
               f'Time: {self.start_time}')
         print('-' * 10)
@@ -158,7 +160,7 @@ class Bot(commands.Bot):
 
     async def close(self):
         """
-        Closes the connection to Discord and any database files.
+        Closes the connection to discord and any database files.
         """
 
         if self._closed:
@@ -207,7 +209,7 @@ class Bot(commands.Bot):
             await ctx.send(_message)
             return
 
-        if isinstance(error, discord.errors.Forbidden):
+        if isinstance(error, nextcord.errors.Forbidden):
             print("Forbidden action in", ctx.command.name)
             return
 
@@ -248,7 +250,7 @@ class Bot(commands.Bot):
         if isinstance(error, commands.NoPrivateMessage):
             try:
                 await ctx.author.send('This command cannot be used in direct messages.')
-            except discord.Forbidden:
+            except nextcord.Forbidden:
                 pass
             return
 
@@ -264,6 +266,9 @@ class Bot(commands.Bot):
         @self.command(usage='')
         @commands.is_owner()
         async def update(ctx):
+            """
+            Update the bot from the github page. Only usable by the owner of the bot.
+            """
             await ctx.send("Restarting...")
             await ctx.bot.close()
 
