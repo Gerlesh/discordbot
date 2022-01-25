@@ -31,19 +31,17 @@ class HelpCommand(commands.HelpCommand):
     def get_bot_mapping(self) -> dict:
         """Retrieves the bot mapping passed to :meth:`send_bot_help`."""
         bot = self.context.bot
-        mapping = {
-            cog: list(dict.fromkeys(cog.get_commands()))
-            for cog in bot.cogs.values()
-        }
-        mapping["General"] = list(dict.fromkeys([c for c in bot.all_commands.values() if c.cog is None]))
-
+        mapping = {cog: cog.get_commands() for cog in bot.cogs.values()}
+        mapping['General'] = [c for c in bot.commands if c.cog is None]
         return mapping
 
     async def send_bot_help(self, mapping:dict):
         copy = mapping.copy()
-        for cog, commands in copy.items():
-            for c in commands:
-                if not await c.can_run(self.context):
+        for cog, coms in copy.items():
+            for c in coms:
+                try:
+                    await c.can_run(self.context)
+                except commands.CheckFailure:
                     mapping[cog].remove(c)
             if not mapping[cog]:
                 mapping.pop(cog)
@@ -66,7 +64,9 @@ class HelpCommand(commands.HelpCommand):
         await self.context.send(embed=embed, view=view)
 
     async def send_command_help(self, command:commands.Command):
-        if not await command.can_run(self.context):
+        try:
+            await command.can_run(self.context)
+        except commands.CheckFailure:
             await self.send_bot_help(self.get_bot_mapping())
             return
 
@@ -85,7 +85,9 @@ class HelpCommand(commands.HelpCommand):
         await self.context.send(embed=embed)
 
     async def send_group_help(self, group:commands.Group):
-        if not await group.can_run(self.context):
+        try:
+            await group.can_run(self.context)
+        except commands.CheckFailure:
             await self.send_bot_help(self.get_bot_mapping())
             return
 
