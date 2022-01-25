@@ -1,4 +1,4 @@
-FROM gerlesh/calibre-python:latest
+FROM python:3
 
 RUN apt-get update -y && apt-get install git -y && git clone https://github.com/Gerlesh/discordbot.git && \
     mv /discordbot /app
