@@ -24,6 +24,7 @@ class Automation(commands.Cog):
             name = msg.content.split()[1]
             if name in self.reactions:
                 await msg.add_reaction(self.reactions[name])
+                await msg.publish()
 
 
 def setup(bot:commands.Bot):
