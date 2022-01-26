@@ -1,5 +1,5 @@
-# Gerlesh's Discord Bot
-A simple and easily expandable discord bot.
+# ASGbot
+A simple and easily expandable discord bot. This branch is used for the ASGbot in the [ASG Community Discord](https://discord.gg/KuceKgxwJn)
 
 ## Running the bot
 There are two easy free ways to run the bot, Through Docker and directly on your system. For both of these methods, make sure you get your bot token from the [Discord Developer Portal](https://discord.com/developers/applications). If you're not sure how, [here's a useful tutorial](https://www.writebots.com/discord-bot-token/).
