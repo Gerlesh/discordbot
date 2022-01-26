@@ -53,7 +53,7 @@ class HelpCommand(commands.HelpCommand):
                                 hasattr(cog, 'description') and cog.description) else "Miscellaneous commands",
                         inline=False)
 
-        for command in mapping[cog]:
+        for command in sorted(mapping[cog], key=lambda c: c.name):
             embed.add_field(name=command.name, value=command.help.split("\n")[0])
 
         view = None
@@ -77,7 +77,7 @@ class HelpCommand(commands.HelpCommand):
         embed.add_field(name="Aliases",
                         value=', '.join([await bot.get_prefix_(bot, self.context.message)
                                         + (command.parent.name + " " if command.parent else '')
-                                        + alias for alias in [command.name] + command.aliases]))
+                                        + alias for alias in [command.name] + sorted(command.aliases)]))
         embed.add_field(name="Usage", value=await self.context.bot.get_prefix_(bot, self.context.message)
                                         + (command.parent.name + " " if command.parent else '')
                                         + command.name + (" " + command.usage if command.usage else ""))
@@ -96,9 +96,9 @@ class HelpCommand(commands.HelpCommand):
                               description=group.help)
 
         embed.add_field(name="Aliases",
-                        value=', '.join([await bot.get_prefix_(bot, self.context.message) + alias for alias in [group.name] + group.aliases]))
+                        value=', '.join([await bot.get_prefix_(bot, self.context.message) + alias for alias in [group.name] + sorted(group.aliases)]))
         embed.add_field(name="Usage", value=await self.context.bot.get_prefix_(bot, self.context.message) + group.name + " " + group.usage)
-        embed.add_field(name="Subcommands", value=', '.join([command.name for command in group.commands]))
+        embed.add_field(name="Subcommands", value=', '.join(sorted([command.name for command in group.commands])))
 
         await self.context.send(embed=embed)
 
