@@ -4,7 +4,7 @@ services:
   discord-bot:
     container_name: discord-bot
     build: .
-    command: ./update.sh
+    command: python3 main.py
     environment:
       - DISCORD_BOT_TOKEN=/var/run/secrets/discord_bot_token
     ports:
