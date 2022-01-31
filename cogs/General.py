@@ -96,7 +96,7 @@ class General(commands.Cog):
 
     @commands.command(usage='')
     @commands.is_owner()
-    async def update(ctx:commands.Context):
+    async def update(self, ctx:commands.Context):
         """
         Update the bot from the github page.
         Only usable by the owner of the bot.
