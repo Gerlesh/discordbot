@@ -22,106 +22,21 @@ def config_load() -> dict:
         return json.load(f)
 
 
-class HelpCommand(commands.HelpCommand):
-    def __init__(self):
-        super().__init__()
-        self.command_attrs = {'name': "help", 'usage': "<optional command>", 'aliases': ["commands", "q"],
-                              'help': "Shows this help message.\nAdd a command to get information about it."}
-
-    def get_bot_mapping(self) -> dict:
-        """Retrieves the bot mapping passed to :meth:`send_bot_help`."""
-        bot = self.context.bot
-        mapping = {cog: cog.get_commands() for cog in bot.cogs.values()}
-        mapping['General'] = [c for c in bot.commands if c.cog is None]
-        return mapping
-
-    async def send_bot_help(self, mapping:dict):
-        copy = mapping.copy()
-        for cog, coms in copy.items():
-            for c in coms:
-                try:
-                    await c.can_run(self.context)
-                except commands.CheckFailure:
-                    mapping[cog].remove(c)
-            if not mapping[cog]:
-                mapping.pop(cog)
-
-        embed = nextcord.Embed(title="Commands")
-        cog = [cog for cog in mapping.keys() if isinstance(cog, str)][0]
-        embed.add_field(name="**__" + (cog.qualified_name if hasattr(cog, "qualified_name") else cog) + "__**",
-                        value=cog.description if (
-                                hasattr(cog, 'description') and cog.description) else "Miscellaneous commands",
-                        inline=False)
-
-        for command in sorted(mapping[cog], key=lambda c: c.name):
-            embed.add_field(name=command.name, value=command.help.split("\n")[0])
-
-        view = None
-        if len(mapping.keys()) > 1:
-            view = nextcord.ui.View()
-            view.add_item(menus.HelpMenu(mapping))
-
-        await self.context.send(embed=embed, view=view)
-
-    async def send_command_help(self, command:commands.Command):
-        try:
-            await command.can_run(self.context)
-        except commands.CheckFailure:
-            await self.send_bot_help(self.get_bot_mapping())
-            return
-
-        bot = self.context.bot
-        embed = nextcord.Embed(title=command.name + " info",
-                              description=command.help)
-
-        embed.add_field(name="Aliases",
-                        value=', '.join([await bot.get_prefix_(bot, self.context.message)
-                                        + (command.parent.name + " " if command.parent else '')
-                                        + alias for alias in [command.name] + sorted(command.aliases)]))
-        embed.add_field(name="Usage", value=await self.context.bot.get_prefix_(bot, self.context.message)
-                                        + (command.parent.name + " " if command.parent else '')
-                                        + command.name + (" " + command.usage if command.usage else ""))
-
-        await self.context.send(embed=embed)
-
-    async def send_group_help(self, group:commands.Group):
-        try:
-            await group.can_run(self.context)
-        except commands.CheckFailure:
-            await self.send_bot_help(self.get_bot_mapping())
-            return
-
-        bot = self.context.bot
-        embed = nextcord.Embed(title=group.name + " info",
-                              description=group.help)
-
-        embed.add_field(name="Aliases",
-                        value=', '.join([await bot.get_prefix_(bot, self.context.message) + alias for alias in [group.name] + sorted(group.aliases)]))
-        embed.add_field(name="Usage", value=await self.context.bot.get_prefix_(bot, self.context.message) + group.name + " " + group.usage)
-        embed.add_field(name="Subcommands", value=', '.join(sorted([command.name for command in group.commands])))
-
-        await self.context.send(embed=embed)
-
-async def run():
+def run(loop:asyncio.AbstractEventLoop):
     """
     Where the bot gets started.
     """
 
     config = config_load()
-    db = await sql.connect(config["database"])
-    await db.execute(
-        'CREATE TABLE IF NOT EXISTS "prefixes" ("server_id" INTEGER PRIMARY KEY, "prefix" TEXT)'
-    )
 
-    bot = Bot(config=config, description=config['description'] if 'description' in config else None, db=db)
-
-    bot.get_misc_commands()
+    bot = Bot(config=config, description=config['description'] if 'description' in config else None)
 
     try:
         with open(os.getenv('DISCORD_BOT_TOKEN'), 'r') as f:
-            await bot.start(f.read())
+            loop.run_until_complete(bot.start(f.read()))
     except KeyboardInterrupt:
-        await bot.logout()
+        loop.run_until_complete(bot.close())
+        sys.exit()
 
 
 class Bot(commands.Bot):
@@ -129,19 +44,24 @@ class Bot(commands.Bot):
         super().__init__(
             command_prefix=self.get_prefix_,
             description=kwargs.pop('description'),
-            help_command=HelpCommand(),
+            help_command=None,
             intents=nextcord.Intents.default()
         )
 
         self.config = kwargs.pop('config')
 
-        self.db = kwargs.pop('db')
-
         self.start_time = None
         self.app_info = None
 
+        self.loop.create_task(self.db_connect())
         self.loop.create_task(self.track_start())
         self.loop.create_task(self.load_all_extensions())
+
+    async def db_connect(self):
+        self.db = await sql.connect(self.config["database"])
+        await self.db.execute(
+            'CREATE TABLE IF NOT EXISTS "prefixes" ("server_id" INTEGER PRIMARY KEY, "prefix" TEXT)'
+        )
 
     async def track_start(self):
         """
@@ -207,25 +127,9 @@ class Bot(commands.Bot):
         Closes the connection to discord and any database files.
         """
 
-        if self._closed:
-            return
-
-        await self.http.close()
-        self._closed = True
-
         await self.db.close()
 
-        for voice in self.voice_clients:
-            try:
-                await voice.disconnect()
-            except Exception:
-                # if an error happens during disconnects, disregard it.
-                pass
-
-        if self.ws is not None and self.ws.open:
-            await self.ws.close(code=1000)
-
-        self._ready.clear()
+        await super().close()
 
     async def on_command_error(self, ctx:commands.Context, error:Exception):
         """
@@ -306,20 +210,11 @@ class Bot(commands.Bot):
 
         traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
-    def get_misc_commands(self):
-        @self.command(usage='')
-        @commands.is_owner()
-        async def update(ctx:commands.Context):
-            """
-            Update the bot from the github page. Only usable by the owner of the bot.
-            """
-            await ctx.send("Restarting...")
-            await ctx.bot.close()
 
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(run())
+    run(loop)
     os.execvp("sh", ('sh', './update.sh'))

@@ -3,5 +3,6 @@ cogs/__pycache__/
 cogs/utils/__pycache__/
 cogs/*.txt
 .venv/
+.vscode/
 secrets/
 !cogs/sample.txt

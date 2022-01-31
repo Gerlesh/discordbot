@@ -2,29 +2,21 @@ import nextcord
 from nextcord.ext import commands
 
 class HelpMenu(nextcord.ui.Select):
-    def __init__(self, mapping:dict):
+    def __init__(self, bot:commands.Bot, mapping:dict):
+        self.bot = bot
         self.mapping = mapping
         options = [nextcord.SelectOption(
-                    label=cog.qualified_name if hasattr(cog, 'qualified_name') else str(cog),
-                    description = cog.description if (hasattr(cog, 'description') and cog.description) else "Miscellaneous commands",
-                    default=not hasattr(cog, 'qualified_name'))
+                    label=cog.qualified_name,
+                    description = cog.description,
+                    default=cog.qualified_name == "General")
                     for cog in mapping.keys()]
         super().__init__(placeholder=[cog for cog in mapping if isinstance(cog,str)][0], min_values=1, max_values=1, options=options)
 
     async def callback(self, interaction:nextcord.Interaction):
-        def find_cog(name):
-            for cog in self.mapping.keys():
-                if hasattr(cog, 'qualified_name'):
-                    if cog.qualified_name == name:
-                        return cog
-                elif str(cog) == name:
-                    return cog
-
         embed = nextcord.Embed(title="Commands")
-        cog = find_cog(self.values[0])
-        embed.add_field(name="**__" + self.values[0] + "__**",
-                        value=cog.description if (
-                                hasattr(cog, 'description') and cog.description) else "Miscellaneous commands",
+        cog = self.bot.get_cog(self.values[0])
+        embed.add_field(name="**__" + cog.qualified_name + "__**",
+                        value=cog.description,
                         inline=False)
 
         for command in self.mapping[cog]:
