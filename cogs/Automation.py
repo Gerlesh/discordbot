@@ -25,6 +25,14 @@ class Automation(commands.Cog):
             if name in self.reactions:
                 await msg.add_reaction(self.reactions[name])
                 await msg.publish()
+    
+    @commands.Cog.listener()
+    async def on_member_join(self, member:nextcord.Member):
+        """
+        Automatically assign the ASG Viewers role to new members
+        """
+        if member.guild.id == 891583482415960074:
+            await member.add_roles(895498674656911421, reason="New viewer pog")
 
 
 def setup(bot:commands.Bot):
