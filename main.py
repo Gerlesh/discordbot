@@ -45,7 +45,7 @@ class Bot(commands.Bot):
             command_prefix=self.get_prefix_,
             description=kwargs.pop('description'),
             help_command=None,
-            intents=nextcord.Intents.default()
+            intents=nextcord.Intents.all()
         )
 
         self.config = kwargs.pop('config')
@@ -130,7 +130,7 @@ class Bot(commands.Bot):
         await self.db.close()
 
         await super().close()
-
+    
     async def on_command_error(self, ctx:commands.Context, error:Exception):
         """
         Handles all errors in commands.

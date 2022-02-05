@@ -32,7 +32,7 @@ class Automation(commands.Cog):
         Automatically assign the ASG Viewers role to new members
         """
         if member.guild.id == 891583482415960074:
-            await member.add_roles(895498674656911421, reason="New viewer pog")
+            await member.add_roles(nextcord.utils.get(member.guild.roles, id=895498674656911421), reason="New viewer pog")
 
 
 def setup(bot:commands.Bot):
