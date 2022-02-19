@@ -13,7 +13,8 @@ class Automation(commands.Cog):
                           'Sukari': '<:Sukari:898412198186086431>',
                           'Aster': '<:Aster:898412009387864124>',
                           'Potato': '<:Potato:898412104149794826>',
-                          'Solar': '<:Solar:898412341954232330>'}
+                          'Solar': '<:Solar:898412341954232330>',
+                          'Goodnight': '<:Goodnight:944695186234151022>'}
 
     @commands.Cog.listener()
     async def on_message(self, msg:nextcord.Message):
