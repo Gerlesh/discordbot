@@ -14,7 +14,7 @@ class Automation(commands.Cog):
                           'Aster': '<:Aster:898412009387864124>',
                           'Potato': '<:Potato:898412104149794826>',
                           'Solar': '<:Solar:898412341954232330>',
-                          'Goodnight': '<:Goodnight:944695186234151022>'}
+                          'Goodnight': '<:Goodnight:944709667110678588>'}
 
     @commands.Cog.listener()
     async def on_message(self, msg:nextcord.Message):
