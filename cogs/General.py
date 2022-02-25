@@ -99,6 +99,14 @@ class General(commands.Cog):
 
             await ctx.send(embed=embed)
 
+    @commands.command(usage='', aliases=["code","source"])
+    async def github(self, ctx:commands.Context):
+        """
+        Get a link to the bot's github page.
+        See how the bot and its commands work
+        """
+        await ctx.send("The source code for this bot can be found on github at https://github.com/Gerlesh/discordbot.\nIt is maintained and run by Gerlesh#4108")
+
     @commands.command(usage='')
     @commands.is_owner()
     async def update(self, ctx:commands.Context):
