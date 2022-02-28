@@ -48,7 +48,7 @@ class Automation(commands.Cog):
             await channel.edit(name="Viewer Count: "+str(viewer_count))
 
     @commands.Cog.listener()
-    async def on_connect(self):
+    async def on_ready(self):
         """
         Automatically update viewer count channel when bot reconnects
         """
