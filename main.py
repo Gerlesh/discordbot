@@ -77,8 +77,8 @@ class Bot(commands.Bot):
         Returns the prefix to be used with the message (i.e. guild prefix)
         """
 
-        async with self.db.execute('SELECT prefix FROM prefixes WHERE server_id=?', (msg.guild.id,)) as cur:
-            prefix = await cur.fetchone()
+        cursor = await self.db.execute('SELECT prefix FROM prefixes WHERE server_id=?', (msg.guild.id,))
+        prefix = await cursor.fetchone()
 
         return prefix if prefix is not None else '-'
 
