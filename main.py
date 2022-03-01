@@ -59,8 +59,7 @@ class Bot(commands.Bot):
         self.loop.create_task(self.load_all_extensions())
 
     async def db_connect(self):
-        conn = await sql.connect(self.config["database"])
-        self.db = conn.cursor()
+        self.db = await sql.connect(self.config["database"])
         await self.db.execute(
             'CREATE TABLE IF NOT EXISTS "prefixes" ("server_id" INTEGER PRIMARY KEY, "prefix" TEXT)'
         )
