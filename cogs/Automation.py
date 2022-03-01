@@ -18,7 +18,8 @@ class Automation(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, msg:nextcord.Message):
         """
-        Automatically add streamer reactions to stream announcements in stream announcements channel
+        Automatically add streamer reactions to stream announcements in stream announcements channel.
+        Also, automatically send boost messages in dedicated channel.
         """
         if msg.channel.id == 895508695532830781 and msg.author.id == 375805687529209857 and "on Twitch" in msg.content:
             name = msg.content.split()[1]
