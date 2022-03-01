@@ -14,6 +14,8 @@ class Automation(commands.Cog):
                           'Potato': '<:Potato:898412104149794826>',
                           'Solar': '<:Solar:898412341954232330>',
                           'Goodnight': '<:Goodnight:944709667110678588>'}
+        self.roles = (948347532763881482, # Aster
+                      948348445410873424) # Potato
 
     @commands.Cog.listener()
     async def on_message(self, msg:nextcord.Message):
@@ -59,6 +61,17 @@ class Automation(commands.Cog):
         viewer_count = len(self.bot.get_guild(891583482415960074).get_role(895498674656911421).members)
         channel = self.bot.get_channel(947906376338898984)
         await channel.edit(name="Viewer Count: "+str(viewer_count))
+    
+    @commands.Cog.listener()
+    async def on_member_update(self, before:nextcord.Member, after:nextcord.Member):
+        """
+        Automatically add/remove subsway role when integration adds a sub role
+        """
+        if any([role in after.roles for role in self.roles]):
+            after.add_roles(948350543011643422, reason="New sub pog")
+        else:
+            after.remove_roles(948350543011643422, reason="Sub expired rip")
+
 
 def setup(bot:commands.Bot):
     bot.add_cog(Automation(bot))
