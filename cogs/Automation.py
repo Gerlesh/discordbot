@@ -25,6 +25,9 @@ class Automation(commands.Cog):
             if name in self.reactions:
                 await msg.add_reaction(self.reactions[name])
                 await msg.publish()
+
+        if msg.guild.id == 891583482415960074 and msg.is_system() and msg.type == nextcord.MessageType.premium_guild_subscription:
+            await self.bot.get_channel(948292358515068928).send("Thanks "+msg.mentions[0].mention+" for boosting the server!")
     
     @commands.Cog.listener()
     async def on_member_join(self, member:nextcord.Member):
