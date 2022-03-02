@@ -68,10 +68,11 @@ class Automation(commands.Cog):
         """
         Automatically add/remove subsway role when integration adds a sub role
         """
-        if any([role in map(lambda i: i.id, after.roles) for role in self.roles]):
-            after.add_roles(948350543011643422, reason="New sub pog")
+        role = after.guild.get_role(948350543011643422)
+        if any([r in map(lambda i: i.id, after.roles) for r in self.roles]):
+            await after.add_roles(role, reason="New sub pog")
         else:
-            after.remove_roles(948350543011643422, reason="Sub expired rip")
+            await after.remove_roles(role, reason="Sub expired rip")
 
 
 def setup(bot:commands.Bot):
