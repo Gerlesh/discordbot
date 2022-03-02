@@ -15,7 +15,8 @@ class Automation(commands.Cog):
                           'Solar': '<:Solar:898412341954232330>',
                           'Goodnight': '<:Goodnight:944709667110678588>'}
         self.roles = (948347532763881482, # Aster
-                      948348445410873424) # Potato
+                      948348445410873424, # Potato
+                      948383992728653834) # Sukari
 
     @commands.Cog.listener()
     async def on_message(self, msg:nextcord.Message):
