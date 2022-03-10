@@ -10,7 +10,7 @@ class HelpMenu(nextcord.ui.Select):
                     description = cog.description,
                     default=cog.qualified_name == "General")
                     for cog in mapping.keys()]
-        super().__init__(placeholder="General", min_values=1, max_values=1, options=options)
+        super().__init__(placeholder=[cog for cog in mapping if isinstance(cog,str)][0], min_values=1, max_values=1, options=options)
 
     async def callback(self, interaction:nextcord.Interaction):
         embed = nextcord.Embed(title="Commands")
