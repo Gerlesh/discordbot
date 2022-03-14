@@ -101,7 +101,7 @@ class Starboard(commands.Cog):
                 message = await channel.fetch_message(starboard_id)
                 await message.edit(embed=embed)
 
-    @commands.group(invoke_without_command=True, usage='[minimum stars|subcommand]', aliases=[])
+    @commands.command(usage='[minimum stars|subcommand]', aliases=[])
     async def starboard(self, ctx:commands.Context, min_stars:int=3):
         """
         Initialize starboard for a server
@@ -112,7 +112,7 @@ class Starboard(commands.Cog):
         await ctx.send("Starboard initialized! React to messages with ⭐ to add them to starboard!")
 
 
-    @starboard.command(usage='', aliases=[])
+    @commands.command(usage='', aliases=[])
     async def random(self, ctx:commands.Context):
         """
         Get a random starboard message from this server
