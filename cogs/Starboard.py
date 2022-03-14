@@ -1,3 +1,5 @@
+import random
+
 import nextcord
 from nextcord.ext import commands
 
@@ -99,7 +101,7 @@ class Starboard(commands.Cog):
                 message = await channel.fetch_message(starboard_id)
                 await message.edit(embed=embed)
 
-    @commands.command(usage='[minimum stars]', aliases=[])
+    @commands.group(invoke_without_command=True, usage='[minimum stars|subcommand]', aliases=[])
     async def starboard(self, ctx:commands.Context, min_stars:int=3):
         """
         Initialize starboard for a server
@@ -108,6 +110,34 @@ class Starboard(commands.Cog):
         await self.bot.db.execute('REPLACE INTO "starboard_config" ("guild_id", "star_min", "channel") VALUES (?,?,?)', (ctx.guild.id, min_stars, ctx.channel.id))
         await self.bot.db.commit()
         await ctx.send("Starboard initialized! React to messages with ⭐ to add them to starboard!")
+
+
+    @starboard.command(usage='', aliases=[])
+    async def random(self, ctx:commands.Context):
+        """
+        Get a random starboard message from this server
+        """
+        cursor = await self.bot.db.execute('SELECT "message_id","channel_id","star_count" FROM "starboard" WHERE "guild_id"=? AND "star_count">=(SELECT "star_min" FROM "starboard_config" WHERE "guild_id"=?)', (ctx.guild.id, ctx.guild.id))
+        messages = await cursor.fetchall()
+        if not messages:
+            await ctx.send("There are no starboard messages in this server!")
+
+        msg = random.choice(messages)
+        channel = self.bot.get_channel(msg[1])
+        message = await channel.fetch_message(msg[0])
+        star_count = msg[2]
+        
+        embed = nextcord.Embed(title=str(star_count)+" ⭐ message in #"+channel.name,
+                url=message.jump_url,
+                description=message.content,
+                timestamp=message.created_at)
+
+        embed.set_author(name=message.author.display_name,
+                         icon_url=message.author.avatar.url)
+
+        if message.attachments and message.attachments[0].content_type.startswith("image"):
+            embed.set_image(url=message.attachments[0].url)
+        await ctx.send(embed=embed)
 
 
 def setup(bot):
