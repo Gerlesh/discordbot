@@ -20,4 +20,16 @@ To make the bot automatically restart, enter `docker update --restart unless-sto
 If you are a more advanced user and would like to customise the bot's functionality for your use, you can modify line 8 in the `Dockerfile` to point to your own repo, and the container will clone from there instead of this one.
 
 ### Regular
-If you do not want to run the bot in a Docker container, whether for more fine-tuned control or just for convenience, you can directly run the update.sh file itself.
+If you do not want to run the bot in a Docker container, whether for more fine-tuned control or just for convenience, you can directly use the python script with two commands:
+
+```sh
+// Linux/MacOS
+export DISCORD_BOT_TOKEN=./secrets/discord_bot_token
+python3 main.py
+
+// Windows
+set DISCORD_BOT_TOKEN=.\\secrets\\discord_bot_token
+python main.py
+```
+
+If you are using a virtual environment, be sure to activate it before running these commands.

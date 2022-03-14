@@ -214,8 +214,8 @@ class Bot(commands.Bot):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
+    # logging.basicConfig(level=logging.INFO)
 
     loop = asyncio.get_event_loop()
     run(loop)
-    os.execvp("sh", ('sh', './update.sh'))
+    os.execvp("sh", ("sh", os.path.join(os.getcwd(), 'update.sh')))
