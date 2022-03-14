@@ -3,8 +3,7 @@
 git pull origin master
 chmod +x update.sh
 pip3 install -r requirements.txt
-export DISCORD_BOT_TOKEN=./secrets/discord_bot_token
-if python3 ; then
+if python3 --version ; then
     python3 -u main.py
 else
     python main.py
