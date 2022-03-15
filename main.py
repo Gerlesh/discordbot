@@ -22,14 +22,15 @@ def config_load() -> dict:
         return json.load(f)
 
 
-def run(loop:asyncio.AbstractEventLoop):
+def run(loop: asyncio.AbstractEventLoop):
     """
     Where the bot gets started.
     """
 
     config = config_load()
 
-    bot = Bot(config=config, description=config['description'] if 'description' in config else None)
+    bot = Bot(config=config,
+              description=config['description'] if 'description' in config else None)
 
     try:
         loop.run_until_complete(bot.start(os.getenv('DISCORD_BOT_TOKEN')))
@@ -71,7 +72,7 @@ class Bot(commands.Bot):
         await self.wait_until_ready()
         self.start_time = datetime.datetime.utcnow()
 
-    async def get_prefix_(self, bot:commands.Bot, msg:nextcord.Message):
+    async def get_prefix_(self, bot: commands.Bot, msg: nextcord.Message):
         """
         Returns the prefix to be used with the message (i.e. guild prefix)
         """
@@ -87,7 +88,8 @@ class Bot(commands.Bot):
         """
 
         await self.wait_until_ready()
-        await asyncio.sleep(1)  # ensure that on_ready has completed and finished printing
+        # ensure that on_ready has completed and finished printing
+        await asyncio.sleep(1)
         cogs = [x.stem for x in Path('cogs').glob('*.py')]
         for extension in cogs:
             try:
@@ -97,8 +99,9 @@ class Bot(commands.Bot):
                 error = f'{extension}\n {type(e).__name__} : {e}'
                 print(f'failed to load extension {error}')
             print('-' * 10)
-        if any([len(i.get_commands())>24 for i in self.cogs.values()]):
-            raise OverflowError("Too many commands in cog (help command would not work).")
+        if any([len(i.get_commands()) > 24 for i in self.cogs.values()]):
+            raise OverflowError(
+                "Too many commands in cog (help command would not work).")
 
     async def on_ready(self):
         """
@@ -113,7 +116,7 @@ class Bot(commands.Bot):
               f'Time: {self.start_time}')
         print('-' * 10)
 
-    async def on_message(self, message:nextcord.Message):
+    async def on_message(self, message: nextcord.Message):
         """
         This event triggers on every message received by the bot to process commands.
         """
@@ -131,7 +134,7 @@ class Bot(commands.Bot):
 
         await super().close()
 
-    async def on_command_error(self, ctx:commands.Context, error:Exception):
+    async def on_command_error(self, ctx: commands.Context, error: Exception):
         """
         Handles all errors in commands.
         """
@@ -150,10 +153,12 @@ class Bot(commands.Bot):
             missing = [perm.replace('_', ' ').replace('guild', 'server')
                            .title() for perm in error.missing_perms]
             if len(missing) > 2:
-                fmt = '{}, and {}'.format("**, **".join(missing[:-1]), missing[-1])
+                fmt = '{}, and {}'.format(
+                    "**, **".join(missing[:-1]), missing[-1])
             else:
                 fmt = ' and '.join(missing)
-            _message = 'I need the **{}** permission(s) to run this command.'.format(fmt)
+            _message = 'I need the **{}** permission(s) to run this command.'.format(
+                fmt)
             await ctx.send(_message)
             return
 
@@ -178,10 +183,12 @@ class Bot(commands.Bot):
             missing = [perm.replace('_', ' ').replace('guild', 'server')
                            .title() for perm in error.missing_perms]
             if len(missing) > 2:
-                fmt = '{}, and {}'.format("**, **".join(missing[:-1]), missing[-1])
+                fmt = '{}, and {}'.format(
+                    "**, **".join(missing[:-1]), missing[-1])
             else:
                 fmt = ' and '.join(missing)
-            _message = 'You need the **{}** permission(s) to use this command.'.format(fmt)
+            _message = 'You need the **{}** permission(s) to use this command.'.format(
+                fmt)
             await ctx.send(_message)
             return
 
@@ -206,10 +213,11 @@ class Bot(commands.Bot):
             return
 
         # ignore all other exception types, but print them to stderr
-        print('\n\nIgnoring exception in command {}:'.format(ctx.command), file=sys.stderr)
+        print('\n\nIgnoring exception in command {}:'.format(
+            ctx.command), file=sys.stderr)
 
-        traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
-
+        traceback.print_exception(
+            type(error), error, error.__traceback__, file=sys.stderr)
 
 
 if __name__ == '__main__':
