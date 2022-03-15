@@ -91,7 +91,7 @@ class Starboard(commands.Cog):
                         message.reactions))[0].count
             except IndexError:
                 count = 0
-            await self.bot.db.execute('INSERT INTO "starboard" ("message_id", "guild_id", "channel_id", "star_count") VALUES (?,?,?,?) ON CONFLICT("message_id") DO UPDATE SET "star_count"=?"', (payload.message_id, payload.guild_id, payload.channel_id, count, count))
+            await self.bot.db.execute('INSERT INTO "starboard" ("message_id", "guild_id", "channel_id", "star_count") VALUES (?,?,?,?) ON CONFLICT("message_id") DO UPDATE SET "star_count"=?', (payload.message_id, payload.guild_id, payload.channel_id, count, count))
             cursor = await self.bot.db.execute('SELECT "star_count","starboard_id" FROM "starboard" WHERE "message_id"=?', (payload.message_id,))
             star_count, starboard_id = await cursor.fetchone()
             cursor = await self.bot.db.execute('SELECT "star_min","channel" FROM "starboard_config" WHERE "guild_id"=?', (payload.guild_id,))
