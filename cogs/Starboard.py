@@ -3,6 +3,8 @@ import random
 import nextcord
 from nextcord.ext import commands
 
+from cogs.utils import checks
+
 class Starboard(commands.Cog):
     """
     Starboard functionality.
@@ -101,8 +103,28 @@ class Starboard(commands.Cog):
                 message = await channel.fetch_message(starboard_id)
                 await message.edit(embed=embed)
 
-    @commands.command(usage='[minimum stars|subcommand]', aliases=[])
-    async def starboard(self, ctx:commands.Context, min_stars:int=3):
+    @commands.group(invoke_without_command=True, usage='<subcommand>', aliases=['star'])
+    async def starboard(self, ctx:commands.Context):
+        """
+        See starboard info on this server and use starboard subcommands
+        """
+        cursor = await self.bot.db.execute('SELECT "star_min","channel" FROM "starboard_config" WHERE "guild_id"=?', (ctx.guild.id,))
+        info = await cursor.fetchone()
+        if info is None:
+            await ctx.send("Starboard has not been set up on this server!")
+            return
+
+        star_min, channel = info
+
+        embed = nextcord.Embed(title="Starboard info on "+ctx.guild.name)
+        embed.add_field(name="Minimum Stars", value=str(star_min))
+        embed.add_field(name="Starboard Channel", value=str(self.bot.get_channel(channel).mention))
+
+        await ctx.send(embed=embed)
+
+    @starboard.command(usage='[minimum stars|subcommand]', aliases=[])
+    @checks.is_admin()
+    async def setup(self, ctx:commands.Context, min_stars:int=3):
         """
         Initialize starboard for a server
         Run this command in the channel to be used for starboard with the minimum number of stars to be pinned. Default is 3.
@@ -112,7 +134,7 @@ class Starboard(commands.Cog):
         await ctx.send("Starboard initialized! React to messages with ⭐ to add them to starboard!")
 
 
-    @commands.command(usage='', aliases=[])
+    @starboard.command(usage='', aliases=[])
     async def random(self, ctx:commands.Context):
         """
         Get a random starboard message from this server
