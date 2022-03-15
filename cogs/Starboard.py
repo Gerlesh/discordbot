@@ -143,6 +143,7 @@ class Starboard(commands.Cog):
         messages = await cursor.fetchall()
         if not messages:
             await ctx.send("There are no starboard messages in this server!")
+            return
 
         msg = random.choice(messages)
         channel = self.bot.get_channel(msg[1])
