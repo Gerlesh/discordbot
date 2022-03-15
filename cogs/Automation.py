@@ -68,6 +68,8 @@ class Automation(commands.Cog):
         """
         Automatically add/remove subsway role when integration adds a sub role
         """
+        if after.guild.id != 891583482415960074:
+            return
         role = after.guild.get_role(948350543011643422)
         if any([r in map(lambda i: i.id, after.roles) for r in self.roles]):
             await after.add_roles(role, reason="New sub pog")
