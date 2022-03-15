@@ -8,4 +8,4 @@ RUN apk update && apk upgrade && \
     git clone https://github.com/Gerlesh/discordbot.git && \
     mv /discordbot /app
 WORKDIR /app
-RUN git pull origin master && chmod +x update.sh && pip3 install -r requirements.txt
+RUN git switch ASGbot && chmod +x update.sh && pip3 install -r requirements.txt && export DISCORD_BOT_TOKEN=$(cat ./secrets/discord_bot_token)
