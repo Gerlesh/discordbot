@@ -32,8 +32,7 @@ def run(loop:asyncio.AbstractEventLoop):
     bot = Bot(config=config, description=config['description'] if 'description' in config else None)
 
     try:
-        with open(os.getenv('DISCORD_BOT_TOKEN'), 'r') as f:
-            loop.run_until_complete(bot.start(f.read()))
+        loop.run_until_complete(bot.start(open(os.getenv('DISCORD_BOT_TOKEN'))))
     except KeyboardInterrupt:
         loop.run_until_complete(bot.close())
         sys.exit()
