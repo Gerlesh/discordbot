@@ -199,7 +199,7 @@ class Bot(commands.Bot):
 
         if isinstance(error, commands.UserInputError):
             await ctx.send("That is not a valid way to use the command. Use `"
-                           + await self.get_prefix_(self, ctx.message) + "help" + ctx.command.name + "` for help.")
+                           + await self.get_prefix_(self, ctx.message) + "help " + ctx.command.name + "` for help.")
             return
 
         if isinstance(error, commands.NoPrivateMessage):
