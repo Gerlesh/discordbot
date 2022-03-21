@@ -163,7 +163,7 @@ class Bot(commands.Bot):
             return
 
         if isinstance(error, nextcord.errors.Forbidden):
-            print("Forbidden action in", ctx.command.name)
+            print("Forbidden action in ", ctx.command.name)
             return
 
         if isinstance(error, commands.DisabledCommand):
@@ -194,7 +194,7 @@ class Bot(commands.Bot):
 
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.send("You are missing an argument. Usage: `"
-                           + await self.get_prefix_(self, ctx.message) + ctx.command.name + ctx.command.usage + '`')
+                           + await self.get_prefix_(self, ctx.message) + ctx.command.name + ' ' + ctx.command.usage + '`')
             return
 
         if isinstance(error, commands.UserInputError):
