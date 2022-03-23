@@ -20,7 +20,7 @@ class General(commands.Cog):
         """
         if command is None: # General help
             mapping = {cog: cog.get_commands() for cog in self.bot.cogs.values()}
-            copy = mapping.copy()
+            copy = {cog: commands[:] for cog, commands in mapping.items()}
 
             # Only show commands that the invoker can use
             for cog, cmds in copy.items():
