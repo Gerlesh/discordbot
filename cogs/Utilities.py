@@ -14,9 +14,10 @@ class Utilities(commands.Cog):
         self.bot = bot
         asyncio.create_task(self.bot.db.execute('CREATE TABLE IF NOT EXISTS reaction_roles (message_id INTEGER, role_id INTEGER, emoji TEXT)'))
 
-    @commands.command(usage="<emote> <role id>; [emote] <role id>; ...", aliases=[])
+    @commands.command(usage="<title> <emote> <role id>; [emote] <role id>; ...", aliases=[])
     @commands.has_permissions(manage_roles=True)
-    async def reaction_roles(self, ctx:commands.Context, *, pairs):
+    @commands.bot_has_permissions(manage_roles=True)
+    async def reaction_roles(self, ctx:commands.Context, title:str, *, pairs:str):
         """
         Give roles based on reactions.
         """
@@ -41,7 +42,7 @@ class Utilities(commands.Cog):
                 await ctx.send("Invalid role ID: {}.".format(role))
                 return
 
-        embed = nextcord.Embed(title="Reaction Roles", description="\n".join(["{}: {}".format(emote, role) for emote, role in emote_role_pairs]))
+        embed = nextcord.Embed(title=title, description="\n".join(["{}: {}".format(emote, role) for emote, role in emote_role_pairs]))
         msg = await ctx.send(embed=embed)
         for emote, role in emote_role_pairs:
             await msg.add_reaction(emote)
