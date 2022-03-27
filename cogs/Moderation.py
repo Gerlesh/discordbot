@@ -4,9 +4,6 @@ import nextcord
 from nextcord.ext import commands
 from pytimeparse.timeparse import timeparse
 
-from cogs.utils import checks
-
-
 class Moderation(commands.Cog):
     """
     Moderation commands.

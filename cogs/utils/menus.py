@@ -19,7 +19,7 @@ class HelpMenu(nextcord.ui.Select):
                         value=cog.description,
                         inline=False)
 
-        for command in self.mapping[cog]:
+        for command in sorted(self.mapping[cog], key=lambda x: x.name):
             embed.add_field(name=command.name, value=command.help.split("\n")[0])
 
         for option in self.options:

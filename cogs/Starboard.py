@@ -3,9 +3,6 @@ import random
 import nextcord
 from nextcord.ext import commands
 
-from cogs.utils import checks
-
-
 class Starboard(commands.Cog):
     """
     Starboard functionality.
@@ -142,7 +139,7 @@ class Starboard(commands.Cog):
         await ctx.send(embed=embed)
 
     @starboard.command(usage='[minimum stars|subcommand]', aliases=[])
-    @checks.is_admin()
+    @commands.has_permissions(manage_guild=True)
     async def setup(self, ctx: commands.Context, min_stars: int = 3):
         """
         Initialize starboard for a server
