@@ -107,6 +107,24 @@ class General(commands.Cog):
         """
         await ctx.send("The source code for this bot can be found on github at https://github.com/Gerlesh/discordbot.\nIt is maintained and run by Gerlesh#4108")
 
+    @commands.command(usage='[prefix]', aliases=[])
+    async def prefix(self, ctx:commands.Context, prefix:str=None):
+        """
+        Change or view the bot's prefix.
+        For prefixes with spaces (even at the end), surround them with quotes.
+        """
+        if not prefix:
+            await ctx.send("The current prefix is `" + await self.bot.get_prefix_(self.bot, ctx.message) + "`")
+            return
+
+        if len(prefix) > 10:
+            await ctx.send("The prefix can't be longer than 10 characters!")
+            return
+
+        await self.bot.db.execute('INSERT INTO "guilds" ("guild_id", "prefix") VALUES (?,?) ON CONFLICT("guild_id") DO UPDATE SET "prefix"=?', (ctx.guild.id, prefix, prefix))
+        await self.bot.db.commit()
+        await ctx.send("The prefix has been changed to `" + await self.bot.get_prefix_(self.bot, ctx.message) + "`")
+
     @commands.command(usage='')
     @commands.is_owner()
     async def update(self, ctx:commands.Context):
