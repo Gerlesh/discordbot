@@ -12,17 +12,18 @@ class Starboard(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         bot.loop.create_task(bot.db.execute(
-            'CREATE TABLE IF NOT EXISTS "starboard" ("message_id" INTEGER PRIMARY KEY, "guild_id" INTEGER NOT NULL, "channel_id" INTEGER NOT NULL, "star_count" INTEGER NOT NULL, "starboard_id" INTEGER)'))
-        bot.loop.create_task(bot.db.execute(
-            'CREATE TABLE IF NOT EXISTS "starboard_config" ("guild_id" INTEGER PRIMARY KEY, "star_min" INTEGER NOT NULL, "channel" INTEGER NOT NULL)'))
+            'CREATE TABLE IF NOT EXISTS "starboard" ("message_id" INTEGER PRIMARY KEY, "guild_id" INTEGER NOT NULL, "channel_id" INTEGER NOT NULL, "star_count" INTEGER NOT NULL, "starboard_id" INTEGER)'
+        ))
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: nextcord.RawReactionActionEvent):
         """
         Update starboard score when a reaction is added.
         """
-        cursor = await self.bot.db.execute('SELECT * FROM "starboard_config" WHERE "guild_id"=?', (payload.guild_id,))
-        if await cursor.fetchone() is None:
+        cursor = await self.bot.db.execute('SELECT "starboard","star_min" FROM "guilds" WHERE "guild_id"=?', (payload.guild_id,))
+        starboard_exists = await cursor.fetchone() 
+        if starboard_exists is None or starboard_exists == (None,None):
+            # Starboard is not set up on this guild
             return
 
         if payload.emoji.name == '⭐':
@@ -39,7 +40,7 @@ class Starboard(commands.Cog):
             await self.bot.db.execute('INSERT INTO "starboard" ("message_id", "guild_id", "channel_id", "star_count") VALUES (?,?,?,?) ON CONFLICT("message_id") DO UPDATE SET "star_count"=?', (payload.message_id, payload.guild_id, payload.channel_id, count, count))
             cursor = await self.bot.db.execute('SELECT "star_count","starboard_id" FROM "starboard" WHERE "message_id"=?', (payload.message_id,))
             star_count, starboard_id = await cursor.fetchone()
-            cursor = await self.bot.db.execute('SELECT "star_min","channel" FROM "starboard_config" WHERE "guild_id"=?', (payload.guild_id,))
+            cursor = await self.bot.db.execute('SELECT "star_min","starboard" FROM "guilds" WHERE "guild_id"=?', (payload.guild_id,))
             min_stars, channel = await cursor.fetchone()
 
             if min_stars is not None and star_count >= min_stars:
@@ -74,8 +75,10 @@ class Starboard(commands.Cog):
         """
         Update starboard score when a reaction is removed.
         """
-        cursor = await self.bot.db.execute('SELECT * FROM "starboard_config" WHERE "guild_id"=?', (payload.guild_id,))
-        if await cursor.fetchone() is None:
+        cursor = await self.bot.db.execute('SELECT "starboard","star_min" FROM "guilds" WHERE "guild_id"=?', (payload.guild_id,))
+        starboard_exists = await cursor.fetchone() 
+        if starboard_exists is None or starboard_exists == (None,None):
+            # Starboard is not set up on this guild
             return
 
         if payload.emoji.name == '⭐':
@@ -91,7 +94,7 @@ class Starboard(commands.Cog):
             await self.bot.db.execute('INSERT INTO "starboard" ("message_id", "guild_id", "channel_id", "star_count") VALUES (?,?,?,?) ON CONFLICT("message_id") DO UPDATE SET "star_count"=?', (payload.message_id, payload.guild_id, payload.channel_id, count, count))
             cursor = await self.bot.db.execute('SELECT "star_count","starboard_id" FROM "starboard" WHERE "message_id"=?', (payload.message_id,))
             star_count, starboard_id = await cursor.fetchone()
-            cursor = await self.bot.db.execute('SELECT "star_min","channel" FROM "starboard_config" WHERE "guild_id"=?', (payload.guild_id,))
+            cursor = await self.bot.db.execute('SELECT "star_min","starboard" FROM "guilds" WHERE "guild_id"=?', (payload.guild_id,))
             min_stars, channel = await cursor.fetchone()
 
             await self.bot.db.commit()
@@ -122,13 +125,13 @@ class Starboard(commands.Cog):
         """
         See starboard info on this server and use starboard subcommands
         """
-        cursor = await self.bot.db.execute('SELECT "star_min","channel" FROM "starboard_config" WHERE "guild_id"=?', (ctx.guild.id,))
-        info = await cursor.fetchone()
-        if info is None:
+        cursor = await self.bot.db.execute('SELECT "starboard","star_min" FROM "guilds" WHERE "guild_id"=?', (ctx.guild.id,))
+        starboard_exists = await cursor.fetchone() 
+        if starboard_exists is None or starboard_exists == (None,None):
             await ctx.send("Starboard has not been set up on this server!")
             return
 
-        star_min, channel = info
+        channel, star_min = starboard_exists
 
         embed = nextcord.Embed(title="Starboard info on " + ctx.guild.name)
         embed.add_field(name="Minimum Stars", value=str(star_min))
@@ -145,7 +148,7 @@ class Starboard(commands.Cog):
         Initialize starboard for a server
         Run this command in the channel to be used for starboard with the minimum number of stars to be pinned. Default is 3.
         """
-        await self.bot.db.execute('REPLACE INTO "starboard_config" ("guild_id", "star_min", "channel") VALUES (?,?,?)', (ctx.guild.id, min_stars, ctx.channel.id))
+        await self.bot.db.execute('INSERT INTO "guilds" ("guild_id", "star_min", "starboard") VALUES (?,?,?) ON CONFLICT("guild_id") DO UPDATE SET "star_min"=?, "starboard"=?', (ctx.guild.id, min_stars, ctx.channel.id, min_stars, ctx.channel.id))
         await self.bot.db.commit()
         await ctx.send("Starboard initialized! React to messages with ⭐ to add them to starboard!")
 
@@ -154,7 +157,7 @@ class Starboard(commands.Cog):
         """
         Get a random starboard message from this server
         """
-        cursor = await self.bot.db.execute('SELECT "message_id","channel_id","star_count" FROM "starboard" WHERE "guild_id"=? AND "star_count">=(SELECT "star_min" FROM "starboard_config" WHERE "guild_id"=?)', (ctx.guild.id, ctx.guild.id))
+        cursor = await self.bot.db.execute('SELECT "message_id","channel_id","star_count" FROM "starboard" WHERE "guild_id"=? AND "star_count">=(SELECT "star_min" FROM "guilds" WHERE "guild_id"=?)', (ctx.guild.id, ctx.guild.id))
         messages = await cursor.fetchall()
         if not messages:
             await ctx.send("There are no starboard messages in this server!")

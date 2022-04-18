@@ -61,7 +61,7 @@ class Bot(commands.Bot):
     async def db_connect(self):
         self.db = await sql.connect(self.config["database"])
         await self.db.execute(
-            'CREATE TABLE IF NOT EXISTS "prefixes" ("server_id" INTEGER PRIMARY KEY, "prefix" TEXT)'
+            'CREATE TABLE IF NOT EXISTS "guilds" ("guild_id" INTEGER PRIMARY KEY, "prefix" TEXT, "starboard" INTEGER, "star_min" INTEGER, CHECK(("starboard" IS NOT NULL AND "star_min" IS NOT NULL) OR ("starboard" IS NULL AND "star_min" IS NULL)))'
         )
 
     async def track_start(self):
@@ -75,12 +75,13 @@ class Bot(commands.Bot):
     async def get_prefix_(self, bot: commands.Bot, msg: nextcord.Message):
         """
         Returns the prefix to be used with the message (i.e. guild prefix)
+        Default: -
         """
 
-        cursor = await self.db.execute('SELECT prefix FROM prefixes WHERE server_id=?', (msg.guild.id,))
+        cursor = await self.db.execute('SELECT prefix FROM guilds WHERE guild_id=?', (msg.guild.id,))
         prefix = await cursor.fetchone()
 
-        return prefix if prefix is not None else '-'
+        return prefix[0] if prefix and prefix[0] else '-'
 
     async def load_all_extensions(self):
         """
