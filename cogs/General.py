@@ -1,6 +1,10 @@
+import os
+import sys
+import subprocess
+
 import nextcord
 from nextcord.ext import commands
-from setuptools import Command
+import git
 
 from .utils import menus
 
@@ -125,15 +129,28 @@ class General(commands.Cog):
         await self.bot.db.commit()
         await ctx.send("The prefix has been changed to `" + await self.bot.get_prefix_(self.bot, ctx.message) + "`")
 
-    @commands.command(usage='')
+    @commands.command(usage='[full]', aliases=[])
     @commands.is_owner()
-    async def update(self, ctx:commands.Context):
+    async def update(self, ctx:commands.Context, full:bool=False):
         """
         Update the bot from the github page.
         Only usable by the owner of the bot.
         """
-        await ctx.send("Restarting...")
-        await ctx.bot.close()   # Restart update loop
+        await ctx.send("Updating...")
+        repo = git.Repo(os.getcwd())
+        origin = repo.remote(name='origin')
+        origin.pull()
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
+        if not full:
+            exts = list(self.bot.extensions.keys()).copy()
+            for cog in exts:
+                try:
+                    self.bot.reload_extension(cog)
+                except Exception as e:
+                    await ctx.send("Failed to reload cog `" + cog + "`: " + str(e))
+        else:
+
+            await ctx.bot.close()   # Restart update loop
 
 
 def setup(bot):
