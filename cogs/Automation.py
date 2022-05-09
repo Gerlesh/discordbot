@@ -31,7 +31,7 @@ class Automation(commands.Cog):
                 await msg.add_reaction(self.reactions[name])
                 await msg.publish()
 
-        if msg.guild.id == 891583482415960074 and msg.is_system() and msg.type == nextcord.MessageType.premium_guild_subscription:
+        if msg.guild.id == 891583482415960074 and msg.is_system() and msg.type in (nextcord.MessageType.premium_guild_subscription, nextcord.MessageType.premium_guild_tier_1, nextcord.MessageType.premium_guild_tier_2, nextcord.MessageType.premium_guild_tier_3):
             await self.bot.get_channel(948292358515068928).send("Thanks "+msg.author.mention+" for boosting the server!")
     
     @commands.Cog.listener()
