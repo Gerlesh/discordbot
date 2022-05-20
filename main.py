@@ -88,21 +88,20 @@ class Bot(commands.Bot):
         Attempts to load all .py files in /cogs/ as cog extensions
         """
 
-        await self.wait_until_ready()
-        # ensure that on_ready has completed and finished printing
-        await asyncio.sleep(1)
         cogs = [x.stem for x in Path('cogs').glob('*.py')]
         for extension in cogs:
+            print('-' * 10)
             try:
                 self.load_extension(f'cogs.{extension}')
                 print(f'loaded {extension}')
             except Exception as e:
                 error = f'{extension}\n {type(e).__name__} : {e}'
                 print(f'failed to load extension {error}')
-            print('-' * 10)
         if any([len(i.get_commands()) > 24 for i in self.cogs.values()]):
             raise OverflowError(
                 "Too many commands in cog (help command would not work).")
+
+        self.add_all_cog_commands()
 
     async def on_ready(self):
         """

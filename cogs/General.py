@@ -16,141 +16,29 @@ class General(commands.Cog):
     def __init__(self, bot:commands.Bot):
         self.bot = bot
 
-    @commands.command(usage="[command]", aliases=["commands", "q"])
-    async def help(self, ctx, command:str=None, subcommand:str=None):
-        """
-        Shows this help message.
-        Add a command to get information about it.
-        """
-        if command is None: # General help
-            mapping = {cog: cog.get_commands() for cog in self.bot.cogs.values()}
-            copy = {cog: commands[:] for cog, commands in mapping.items()}
-
-            # Only show commands that the invoker can use
-            for cog, cmds in copy.items():
-                for c in cmds:
-                    try:
-                        await c.can_run(ctx)
-                    except commands.CheckFailure:
-                        mapping[cog].remove(c)
-                if not mapping[cog]:
-                    mapping.pop(cog)
-
-            # Default cog commands embed
-            embed = nextcord.Embed(title="Commands")
-            cog = self
-            embed.add_field(name="**__" + cog.qualified_name + "__**",
-                            value=cog.description,
-                            inline=False)
-
-            for command in sorted(mapping[cog], key=lambda c: c.name):
-                embed.add_field(name=command.name, value=command.help.split("\n")[0])
-
-            # Add selection menu to see commands from other cogs
-            view = None
-            if len(mapping.keys()) > 1:
-                view = nextcord.ui.View()
-                view.add_item(menus.HelpMenu(self.bot, mapping))
-
-            await ctx.send(embed=embed, view=view)
-            return
-        
-        cmd = self.bot.get_command(command) # Command help
-        
-        if cmd is None:
-            await ctx.send("That's not a valid command!")
-            return
-
-        if isinstance(cmd, commands.Group) and subcommand is None:
-            try:
-                await cmd.can_run(ctx)
-            except commands.CheckFailure:
-                await ctx.send("That's not a valid command!")
-                return
-
-            embed = nextcord.Embed(title=cmd.name + " info",
-                                description=cmd.help)
-            
-            embed.add_field(name="Aliases",
-                            value=', '.join([await self.bot.get_prefix_(self.bot, ctx.message) + alias for alias in [cmd.name] + sorted(cmd.aliases)]))
-            embed.add_field(name="Usage", value=await self.bot.get_prefix_(self.bot, ctx.message) + cmd.name + " " + cmd.usage)
-            embed.add_field(name="Subcommands", value=', '.join(sorted([command.name for command in cmd.commands])))
-
-            await ctx.send(embed=embed)
-        else:
-            if subcommand is not None:
-                cmd = self.bot.get_command(command+" "+subcommand)
-                if cmd is None:
-                    await ctx.send("That's not a valid command!")
-
-            try:
-                await cmd.can_run(ctx)
-            except commands.CheckFailure:
-                await ctx.send("That's not a valid command!")
-                return
-
-
-            embed = nextcord.Embed(title=cmd.name + " info",
-                                description=cmd.help)
-
-            embed.add_field(name="Aliases",
-                            value=', '.join([await self.bot.get_prefix_(self.bot, ctx.message)
-                                            + (cmd.parent.name + " " if cmd.parent else '')
-                                            + alias for alias in [cmd.name] + sorted(cmd.aliases)]))
-            embed.add_field(name="Usage", value=await self.bot.get_prefix_(self.bot, ctx.message)
-                                            + (cmd.parent.name + " " if cmd.parent else '')
-                                            + cmd.name + (" " + cmd.usage if cmd.usage else ""))
-
-            await ctx.send(embed=embed)
-
-    @commands.command(usage='', aliases=["code","source"])
-    async def github(self, ctx:commands.Context):
+    @nextcord.slash_command()
+    async def github(self, interaction:nextcord.Interaction):
         """
         Get a link to the bot's github page.
-        See how the bot and its commands work
+        See how the bot and its commands work.
         """
-        await ctx.send("The source code for this bot can be found on github at https://github.com/Gerlesh/discordbot.\nIt is maintained and run by Gerlesh#4108")
+        await interaction.send("The source code for this bot can be found on github at https://github.com/Gerlesh/discordbot.\nIt is maintained and run by Gerlesh#4108")
 
-    @commands.command(usage='[prefix]', aliases=[])
-    async def prefix(self, ctx:commands.Context, prefix:str=None):
-        """
-        Change or view the bot's prefix.
-        For prefixes with spaces (even at the end), surround them with quotes.
-        """
-        if not prefix:
-            await ctx.send("The current prefix is `" + await self.bot.get_prefix_(self.bot, ctx.message) + "`")
-            return
-
-        if len(prefix) > 10:
-            await ctx.send("The prefix can't be longer than 10 characters!")
-            return
-
-        await self.bot.db.execute('INSERT INTO "guilds" ("guild_id", "prefix") VALUES (?,?) ON CONFLICT("guild_id") DO UPDATE SET "prefix"=?', (ctx.guild.id, prefix, prefix))
-        await self.bot.db.commit()
-        await ctx.send("The prefix has been changed to `" + await self.bot.get_prefix_(self.bot, ctx.message) + "`")
-
-    @commands.command(usage='[full]', aliases=[])
-    @commands.is_owner()
-    async def update(self, ctx:commands.Context, full:bool=False):
+    @nextcord.slash_command()
+    async def update(self, interaction:nextcord.Interaction):
         """
         Update the bot from the github page.
         Only usable by the owner of the bot.
         """
-        await ctx.send("Updating...")
+        if interaction.user.id != nextcord.AppInfo.owner:
+            await interaction.send("Only the bot owner can run this command.", ephemeral=True)
+            return
+        await interaction.send("Updating...", ephemeral=True)
         repo = git.Repo(os.getcwd())
         origin = repo.remote(name='origin')
         origin.pull()
         subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
-        if not full:
-            exts = list(self.bot.extensions.keys()).copy()
-            for cog in exts:
-                try:
-                    self.bot.reload_extension(cog)
-                except Exception as e:
-                    await ctx.send("Failed to reload cog `" + cog + "`: " + str(e))
-        else:
-
-            await ctx.bot.close()   # Restart update loop
+        await self.bot.close()   # Restart update loop
 
 
 def setup(bot):
