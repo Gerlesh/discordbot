@@ -164,6 +164,7 @@ class Starboard(commands.Cog):
             return
         if not interaction.permissions.manage_guild:
             await interaction.send("Only users with the `Manage Guild` permission can use this command.", ephemeral=True)
+            return
         await self.bot.db.execute('INSERT INTO "guilds" ("guild_id", "star_min", "starboard") VALUES (?,?,?) ON CONFLICT("guild_id") DO UPDATE SET "star_min"=?, "starboard"=?', (interaction.guild.id, min_stars, interaction.channel.id, min_stars, interaction.channel.id))
         await self.bot.db.commit()
         await interaction.send("Starboard initialized! React to messages with ⭐ to add them to starboard!", ephemeral=True)
