@@ -12,38 +12,49 @@ class Utilities(commands.Cog):
     """
     def __init__(self, bot):
         self.bot = bot
-        asyncio.create_task(self.bot.db.execute('CREATE TABLE IF NOT EXISTS reaction_roles (message_id INTEGER, role_id INTEGER, emoji TEXT)'))
+        self.emotes = ('0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣')
 
-    @commands.command(usage="<title> <emote> <role id>; [emote] <role id>; ...", aliases=[])
-    @commands.has_permissions(manage_roles=True)
-    @commands.bot_has_permissions(manage_roles=True)
-    async def reaction_roles(self, ctx:commands.Context, title:str, *, pairs:str):
+    @commands.Cog.listener()
+    async def on_ready(self):
+        await self.bot.db.execute('CREATE TABLE IF NOT EXISTS reaction_roles (message_id INTEGER, role_id INTEGER, emoji TEXT)')
+
+    @nextcord.slash_command()
+    async def reaction_roles(self, interaction:nextcord.Interaction, title:str,
+        role0:nextcord.Role,
+		role1:nextcord.Role=nextcord.SlashOption(required=False),
+		role2:nextcord.Role=nextcord.SlashOption(required=False),
+		role3:nextcord.Role=nextcord.SlashOption(required=False),
+		role4:nextcord.Role=nextcord.SlashOption(required=False),
+		role5:nextcord.Role=nextcord.SlashOption(required=False),
+		role6:nextcord.Role=nextcord.SlashOption(required=False),
+		role7:nextcord.Role=nextcord.SlashOption(required=False),
+		role8:nextcord.Role=nextcord.SlashOption(required=False),
+		role9:nextcord.Role=nextcord.SlashOption(required=False)
+    ):
         """
         Give roles based on reactions.
         """
-        pairs = pairs.split(";")
-        if not pairs:
-            await ctx.send("You need to provide at least one emote role pair.")
+        if isinstance(interaction.channel, nextcord.PartialMessageable):
+            await interaction.send("This command can only be used in guilds.", ephemeral=True)
+            return
+        if not interaction.permissions.manage_roles:
+            await interaction.send("Only users with the `Manage Roles` permission can use this command.", ephemeral=True)
+            return
+        if not interaction.guild.me.guild_permissions.manage_roles:
+            await interaction.send("I need the `Manage Roles` permission to use this command.", ephemeral=True)
             return
 
-        pairs = [pair.strip().split() for pair in pairs]
-        if not all(len(pair) == 2 for pair in pairs):
-            await ctx.send("You need to provide emote role pairs in the format `emote role_id`, separated by semicolons.")
-            return
-        emote_role_pairs = []
-        for emote, role in pairs:
-            try:
-                emoji = emote.strip() if emote.strip() in ''.join(UNICODE_EMOJI['en'].keys()) else self.bot.get_emoji(emote.strip())
-                if emoji is None:
-                    await ctx.send("Invalid emoji: {}. Please only use default emojis or emojis belonging to this guild.".format(emote.strip()))
-                    return
-                emote_role_pairs.append((emoji, ctx.guild.get_role(int(role.strip()))))
-            except ValueError:
-                await ctx.send("Invalid role ID: {}.".format(role))
+        roles = (role0, role1, role2, role3, role4, role5, role6, role7, role8, role9)
+        for role in roles:
+            if role is not None and role > interaction.guild.me.top_role:
+                await interaction.send("I do not have sufficient permissions to give "+role.name+".", ephemeral=True)
                 return
 
+        emote_role_pairs = [(self.emotes[i], roles[i]) for i in range(10) if roles[i] is not None]
+
         embed = nextcord.Embed(title=title, description="\n".join(["{}: {}".format(emote, role) for emote, role in emote_role_pairs]))
-        msg = await ctx.send(embed=embed)
+        await interaction.send(embed=embed)
+        msg = await interaction.original_message()
         for emote, role in emote_role_pairs:
             await msg.add_reaction(emote)
 
