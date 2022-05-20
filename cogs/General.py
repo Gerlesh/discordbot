@@ -30,7 +30,7 @@ class General(commands.Cog):
         Update the bot from the github page.
         Only usable by the owner of the bot.
         """
-        if interaction.user.id != nextcord.AppInfo.owner:
+        if interaction.user.id != nextcord.AppInfo.owner.id:
             await interaction.send("Only the bot owner can run this command.", ephemeral=True)
             return
         await interaction.send("Updating...", ephemeral=True)
