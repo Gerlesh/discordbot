@@ -30,6 +30,8 @@ class General(commands.Cog):
         Update the bot from the github page.
         Only usable by the owner of the bot.
         """
+        print(self.bot.owner_id)
+        print(interaction.user.id)
         if interaction.user.id != self.bot.owner_id:
             await interaction.send("Only the bot owner can run this command.", ephemeral=True)
             return
