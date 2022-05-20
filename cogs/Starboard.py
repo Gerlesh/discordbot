@@ -132,7 +132,7 @@ class Starboard(commands.Cog):
     @starboard.subcommand()
     async def info(self, interaction:nextcord.Interaction):
         """
-        See starboard info on this server and use starboard subcommands
+        See starboard info on this server and use starboard subcommands.
         """
         if isinstance(interaction.channel, nextcord.PartialMessageable):
             await interaction.send("This command can only be used in guilds.", ephemeral=True)
@@ -156,7 +156,7 @@ class Starboard(commands.Cog):
     @starboard.subcommand()
     async def setup(self, interaction:nextcord.Interaction, min_stars:int=3):
         """
-        Initialize starboard for a server
+        Initialize starboard for a server.
         Run this command in the channel to be used for starboard with the minimum number of stars to be pinned. Default is 3.
         """
         if isinstance(interaction.channel, nextcord.PartialMessageable):
@@ -172,7 +172,7 @@ class Starboard(commands.Cog):
     @starboard.subcommand()
     async def random(self, interaction:nextcord.Interaction):
         """
-        Get a random starboard message from this server
+        Get a random starboard message from this server.
         """
         if isinstance(interaction.channel, nextcord.PartialMessageable):
             await interaction.send("This command can only be used in guilds.", ephemeral=True)
