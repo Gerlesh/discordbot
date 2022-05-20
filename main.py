@@ -54,9 +54,9 @@ class Bot(commands.Bot):
         self.app_info = None
         self.db = None
 
-        self.loop.create_task(self.db_connect())
+        self.loop.run_until_complete(self.db_connect())
+        self.loop.run_until_complete(self.load_all_extensions())
         self.loop.create_task(self.track_start())
-        self.loop.create_task(self.load_all_extensions())
 
     async def db_connect(self):
         self.db = await sql.connect(self.config["database"])
