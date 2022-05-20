@@ -31,9 +31,6 @@ class Automation(commands.Cog):
                 await msg.add_reaction(self.reactions[name])
                 await msg.publish()
 
-        if msg.guild.id == 891583482415960074 and msg.is_system() and msg.type in (nextcord.MessageType.premium_guild_subscription, nextcord.MessageType.premium_guild_tier_1, nextcord.MessageType.premium_guild_tier_2, nextcord.MessageType.premium_guild_tier_3):
-            await self.bot.get_channel(948292358515068928).send("Thanks "+msg.author.mention+" for boosting the server!")
-    
     @commands.Cog.listener()
     async def on_member_join(self, member:nextcord.Member):
         """
@@ -71,11 +68,22 @@ class Automation(commands.Cog):
         """
         if after.guild.id != 891583482415960074:
             return
-        role = after.guild.get_role(948350543011643422)
-        if any([r in map(lambda i: i.id, after.roles) for r in self.roles]):
-            await after.add_roles(role, reason="New sub pog")
-        else:
-            await after.remove_roles(role, reason="Sub expired rip")
+
+        # Give/Remove subsway role
+        subsway = after.guild.get_role(948350543011643422)
+        subbed_members = []
+        for sub_role in self.roles:
+            subbed_members.extend(after.guild.get_role(sub_role).members)
+
+        members_to_check = set(subsway.members) ^ set(subbed_members)
+        for member in members_to_check:
+            if subsway in member.roles:
+                await member.remove_roles(subsway, reason="Sub expired rip")
+            else:
+                await member.add_roles(subsway, reason="New sub pog")
+
+        if 972314039608827915 in after.roles and 972314039608827915 not in before.roles: # Check for boost role
+            await self.bot.get_channel(948292358515068928).send("Thanks "+after.mention+" for boosting the server!")
 
 
 def setup(bot:commands.Bot):

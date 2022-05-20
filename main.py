@@ -45,7 +45,7 @@ class Bot(commands.Bot):
             command_prefix=self.get_prefix_,
             description=kwargs.pop('description'),
             help_command=None,
-            intents=nextcord.Intents.all()
+            intents=nextcord.Intents(messages=True, guilds=True, guild_reactions=True, members=True)
         )
 
         self.config = kwargs.pop('config')
