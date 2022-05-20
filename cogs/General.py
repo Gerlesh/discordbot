@@ -31,7 +31,6 @@ class General(commands.Cog):
         Only usable by the owner of the bot.
         """
         appinfo = await self.bot.application_info()
-        print(appinfo.owner.id)
         if interaction.user.id != appinfo.owner.id:
             await interaction.send("Only the bot owner can run this command.", ephemeral=True)
             return
