@@ -137,7 +137,7 @@ class Starboard(commands.Cog):
         if isinstance(interaction.channel, nextcord.PartialMessageable):
             await interaction.send("This command can only be used in guilds.", ephemeral=True)
             return
-        cursor = await self.bot.db.execute('SELECT "starboard","star_min" FROM "guilds" WHERE "guild_id"=?', (ctx.guild.id,))
+        cursor = await self.bot.db.execute('SELECT "starboard","star_min" FROM "guilds" WHERE "guild_id"=?', (interaction.guild.id,))
         starboard_exists = await cursor.fetchone() 
         if starboard_exists is None or starboard_exists == (None,None):
             await interaction.send("Starboard has not been set up on this server!", ephemeral=True)
@@ -145,7 +145,7 @@ class Starboard(commands.Cog):
 
         channel, star_min = starboard_exists
 
-        embed = nextcord.Embed(title="Starboard info on " + ctx.guild.name)
+        embed = nextcord.Embed(title="Starboard info on " + interaction.guild.name)
         embed.add_field(name="Minimum Stars", value=str(star_min))
         embed.add_field(
             name="Starboard Channel", value=str(
@@ -164,7 +164,7 @@ class Starboard(commands.Cog):
             return
         if not interaction.permissions.manage_guild:
             await interaction.send("Only users with the `Manage Guild` permission can use this command.", ephemeral=True)
-        await self.bot.db.execute('INSERT INTO "guilds" ("guild_id", "star_min", "starboard") VALUES (?,?,?) ON CONFLICT("guild_id") DO UPDATE SET "star_min"=?, "starboard"=?', (ctx.guild.id, min_stars, ctx.channel.id, min_stars, ctx.channel.id))
+        await self.bot.db.execute('INSERT INTO "guilds" ("guild_id", "star_min", "starboard") VALUES (?,?,?) ON CONFLICT("guild_id") DO UPDATE SET "star_min"=?, "starboard"=?', (interaction.guild.id, min_stars, interaction.channel.id, min_stars, interaction.channel.id))
         await self.bot.db.commit()
         await interaction.send("Starboard initialized! React to messages with ⭐ to add them to starboard!", ephemeral=True)
 
@@ -176,7 +176,7 @@ class Starboard(commands.Cog):
         if isinstance(interaction.channel, nextcord.PartialMessageable):
             await interaction.send("This command can only be used in guilds.", ephemeral=True)
             return
-        cursor = await self.bot.db.execute('SELECT "message_id","channel_id","star_count" FROM "starboard" WHERE "guild_id"=? AND "star_count">=(SELECT "star_min" FROM "guilds" WHERE "guild_id"=?)', (ctx.guild.id, ctx.guild.id))
+        cursor = await self.bot.db.execute('SELECT "message_id","channel_id","star_count" FROM "starboard" WHERE "guild_id"=? AND "star_count">=(SELECT "star_min" FROM "guilds" WHERE "guild_id"=?)', (interaction.guild.id, interaction.guild.id))
         messages = await cursor.fetchall()
         if not messages:
             await interaction.send("There are no starboard messages in this server!", ephemeral=True)
