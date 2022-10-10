@@ -7,6 +7,7 @@ import logging
 import math
 import os
 import sys
+import subprocess
 import traceback
 from pathlib import Path
 
@@ -225,4 +226,4 @@ if __name__ == '__main__':
 
     loop = asyncio.get_event_loop()
     run(loop)
-    os.execvp("sh", ("sh", os.path.join(os.getcwd(), 'update.sh')))
+    subprocess.call([sys.executable, os.path.realpath(__file__)] + sys.argv[1:])
