@@ -17,14 +17,6 @@ class General(commands.Cog):
         self.bot = bot
 
     @nextcord.slash_command()
-    async def github(self, interaction:nextcord.Interaction):
-        """
-        Get a link to the bot's github page.
-        See how the bot and its commands work.
-        """
-        await interaction.send("The source code for this bot can be found on github at https://github.com/Gerlesh/discordbot.\nIt is maintained and run by Gerlesh#4108", ephemeral=True)
-
-    @nextcord.slash_command()
     async def update(self, interaction:nextcord.Interaction):
         """
         Update the bot from the github page.
